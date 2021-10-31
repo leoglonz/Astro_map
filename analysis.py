@@ -9,6 +9,7 @@ import numpy as np
 import pickle
 from base import *
 
+
 def get_keys():
     path1 = '/home/lonzaric/astro_research/ahdata/ejected_particles.hdf5'
     with pd.HDFStore(path1) as hdf:
@@ -185,7 +186,7 @@ def calc_ejected_expelled(sim, haloid, save=True, verbose=True):
 
 
         for i,t2 in enumerate(time[1:]):
-                i += 1
+                i += 2
                 if sat_disk[i-1] and sat_halo[i]:
                     out = dat[time==t2].copy()
                     ejected = pd.concat([ejected, out])
@@ -211,6 +212,7 @@ def calc_ejected_expelled(sim, haloid, save=True, verbose=True):
                         out['state2'] = 'sat_disk'
                         
                     accreted = pd.concat([accreted, out])
+                  
 
     # apply the calc_angles function along the rows of ejected and expelled
     print('Calculating ejection angles')
@@ -243,7 +245,7 @@ def calc_ejected_expelled(sim, haloid, save=True, verbose=True):
         accreted.to_hdf(filepath, key=key)
         
         
-    print(f'Returning (ejected, cooled, expelled, accreted) datasets...')
+    print(f'> Returning (ejected, cooled, expelled, accreted) datasets <')
 
     return ejected, cooled, expelled, accreted
         
@@ -280,7 +282,7 @@ def read_all_ejected_expelled():
         accreted1['key'] = key
         accreted = pd.concat([accreted, accreted1])
 
-    print(f'Returning (ejected, cooled, expelled, accreted) for all available satellites...')
+    print(f'> Returning (ejected, cooled, expelled, accreted) for all available satellites <')
     return ejected, cooled, expelled, accreted
 
 def read_ram_pressure(sim, haloid):
@@ -420,3 +422,164 @@ def read_all_ram_pressure():
         data_all = pd.concat([data_all,data])  
     
     return data_all
+
+
+
+################################################
+# ------ begin Lonzarich edits 13-10-21 ------ # 
+################################################
+
+def calc_discharged(sim, haloid, save=True, verbose=True):
+    import tqdm
+    data = read_tracked_particles(sim, haloid, verbose=verbose)
+
+    if verbose: print(f'Now computing discharged particles for {sim}-{haloid}...')
+    pre_dsrg = pd.DataFrame() # discharged gas particles but with their properties before discharge.
+    discharged = pd.DataFrame() # gas particles that are removed from their satellite's disk
+    dsrg_accreted = pd.DataFrame() # discharged gas particles that are reaccreted.
+
+    
+    pids = np.unique(data.pid)
+    for pid in tqdm.tqdm(pids):
+        dat = data[data.pid==pid]
+
+        sat_disk = np.array(dat.sat_disk, dtype=bool)
+        in_sat = np.array(data.in_sat, dtype=bool)
+        outside_disk = ~sat_disk
+        
+        time = np.array(dat.time, dtype=float)
+
+        for i,t2 in enumerate(time[1:]):
+                i += 1
+                if sat_disk[i-1] and outside_disk[i]:
+                    in_ = dat[time==time[i-1]].copy()
+                    out = dat[time==t2].copy()
+                    pre_dsrg = pd.concat([pre_dsrg, in_])
+                    discharged = pd.concat([discharged, out])
+
+                if outside_disk[i-1] and sat_disk[i]:
+                    out = dat[time==t2].copy()
+                    dsrg_accreted = pd.concat([dsrg_accreted, out])
+                 
+
+    # apply the calc_angles function along the rows of discharged particles.
+    print('Calculating preheated angles.')
+    pre_dsrg = pre_dsrg.apply(calc_angles, axis=1)
+    print('Calculating discharged angles.')
+    discharged = discharged.apply(calc_angles, axis=1)
+   
+    
+    if save:
+        key = f'{sim}_{str(int(haloid))}'
+        filepath = '/home/lonzaric/astro_research/ahdata/predischarged_particles.hdf5'
+        print(f'Saving {key} preheated particle dataset to {filepath}')
+        pre_dsrg.to_hdf(filepath, key=key)
+ 
+        filepath = '/home/lonzaric/astro_research/ahdata/discharged_particles.hdf5'
+        print(f'Saving {key} discharged particle dataset to {filepath}')
+        discharged.to_hdf(filepath, key=key)
+        
+        filepath = '/home/lonzaric/astro_research/ahdata/dsrg_accreted_particles.hdf5'
+        print(f'Saving {key} accreted particle dataset to {filepath}')
+        dsrg_accreted.to_hdf(filepath, key=key)
+        
+        
+    print(f'> Returning (predischarged, discharged, dsrg_accreted) datasets <')
+
+    return pre_dsrg, discharged, dsrg_accreted
+
+
+
+def calc_dsrg_heated(sim, haloid, save=True, verbose=True):
+    import tqdm
+    data = read_tracked_particles(sim, haloid, verbose=verbose)
+
+    if verbose: print(f'Now computing heated particles for {sim}-{haloid}...')
+    
+    preheated = pd.DataFrame()
+    heated = pd.DataFrame() # discharged gas particles that experienced supernova heating when removed.
+
+    
+    pids = np.unique(data.pid)
+    for pid in tqdm.tqdm(pids):
+        dat = data[data.pid==pid]
+
+        sat_disk = np.array(dat.sat_disk, dtype=bool)
+        in_sat = np.array(data.in_sat, dtype=bool)
+        outside_disk = ~sat_disk
+        
+        time = np.array(dat.time, dtype=float)
+        coolontime = np.array(dat.coolontime, dtype=float)
+
+
+        for i,t2 in enumerate(time[1:]):
+                i += 1
+                if sat_disk[i-1] and outside_disk[i] and (coolontime[i] > time[i]):
+                    in_ = dat[time==time[i-1]].copy()
+                    out = dat[time==t2].copy()
+                    preheated = pd.concat([preheated, in_])
+                    heated = pd.concat([heated, out])
+                 
+
+    # apply the calc_angles function along the rows of discharged particles.
+    print('Calculating heated angles.')
+    preheated = preheated.apply(calc_angles, axis=1)
+    heated = heated.apply(calc_angles, axis=1)
+   
+    
+    if save:
+        key = f'{sim}_{str(int(haloid))}'
+        filepath = '/home/lonzaric/astro_research/ahdata/preheated_particles.hdf5'
+        print(f'Saving {key} preheated particle dataset to {filepath}')
+        preheated.to_hdf(filepath, key=key)
+        
+        filepath = '/home/lonzaric/astro_research/ahdata/heated_particles.hdf5'
+        print(f'Saving {key} heated particle dataset to {filepath}')
+        heated.to_hdf(filepath, key=key)
+        
+        
+    print(f'> Returning (preheated, heated) datasets <')
+
+    return preheated, heated
+        
+    
+    
+def read_discharged():
+    pre_dsrg = pd.DataFrame()
+    discharged = pd.DataFrame()
+    dsrg_accreted = pd.DataFrame()
+    preheated= pd.DataFrame()
+    heated= pd.DataFrame()
+    
+    keys = get_keys()
+
+    for i,key in enumerate(keys):
+        i += 1
+        sim = key[:4]
+        haloid = int(key[5:])
+        pre_dsrg1 = pd.read_hdf('/home/lonzaric/astro_research/ahdata/predischarged_particles.hdf5', key=key)
+        pre_dsrg1['key'] = key
+        pre_dsrg = pd.concat([pre_dsrg, pre_dsrg1])
+        
+        discharged1 = pd.read_hdf('/home/lonzaric/astro_research/ahdata/discharged_particles.hdf5', key=key)
+        discharged1['key'] = key
+        discharged = pd.concat([discharged, discharged1])
+        
+        dsrg_accreted1 = pd.read_hdf('/home/lonzaric/astro_research/ahdata/dsrg_accreted_particles.hdf5', key=key)
+        dsrg_accreted1['key'] = key
+        dsrg_accreted = pd.concat([dsrg_accreted, dsrg_accreted1])
+  
+        preheated1 = pd.read_hdf('/home/lonzaric/astro_research/ahdata/preheated_particles.hdf5', key=key)
+        preheated1['key'] = key
+        preheated = pd.concat([preheated, preheated1])
+        
+        heated1 = pd.read_hdf('/home/lonzaric/astro_research/ahdata/heated_particles.hdf5', key=key)
+        heated1['key'] = key
+        heated = pd.concat([heated, heated1])
+       
+    print(f'> Returning (preheated, discharged, accreted, heated) for all available satellites <')
+    return pre_dsrg, discharged, dsrg_accreted, preheated, heated
+
+###########################
+# ------ end edits ------ #
+###########################
