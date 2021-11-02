@@ -514,7 +514,7 @@ def calc_dsrg_heated(sim, haloid, save=True, verbose=True):
 
         for i,t2 in enumerate(time[1:]):
                 i += 1
-                if sat_disk[i-1] and outside_disk[i] and (coolontime[i] > time[i]):
+                if sat_disk[i-1] and outside_disk[i] and (coolontime[i] > time[i-1]):
                     in_ = dat[time==time[i-1]].copy()
                     out = dat[time==t2].copy()
                     preheated = pd.concat([preheated, in_])
