@@ -1,4 +1,4 @@
- # The purpose of this file is to perform a series of data manipuation and processing commands to particle tracking data in bulk. 
+# The purpose of this file is to perform a series of data manipuation and processing commands to particle tracking data in bulk. 
 # In particular, functions in this file import particle tracking and ram pressure data, join them as necessary, calculate kinetic 
 # and potential energies of particles, classify particles as disk vs. halo, identify ejected or expulsed particles, and more. 
 # The reason these functions are written here is so that we can ensure that we are using the same data processing procedures throughout 

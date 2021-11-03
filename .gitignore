@@ -1,0 +1,4 @@
+# this .gitignore is used to allow datasets to remain in the working directory without risk of being mistakenly
+# pushed to the repository (for they are far too large).
+
+SNeData/
