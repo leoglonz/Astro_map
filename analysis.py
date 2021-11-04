@@ -118,6 +118,110 @@ def read_tracked_particles(sim, haloid, verbose=False):
 
     return data
 
+
+
+def read_tracked_particles_v2(sim, haloid, verbose=False):
+    
+    if verbose: print(f'Loading tracked particles for {sim}-{haloid}...')
+    
+    key = f'{sim}_{str(int(haloid))}'
+
+    # import the tracked particles dataset
+    path1 = '/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/tracked_particles_v2.hdf5'
+    data = pd.read_hdf(path1, key=key)
+    
+    time = np.unique(data.time)
+    dt = time[1:]-time[:-1]
+    dt = np.append(dt[0], dt)
+    dt = dt[np.unique(data.time, return_inverse=True)[1]]
+    data['dt'] = dt
+    
+    
+    if verbose: print('Successfully loaded')
+    
+    r_gal = np.array([])
+    for t in np.unique(data.time):
+        d = data[data.time==t]
+        r_gas = np.mean(d.sat_r_gas)
+        r_half = np.mean(d.sat_r_half)
+        rg = np.max([r_gas,r_half])
+
+        if np.isnan(rg):
+            rg = r_gal_prev
+
+        if verbose: print(f't = {t:1f} Gyr, satellite R_gal = {rg:.2f} kpc')
+        r_gal = np.append(r_gal,[rg]*len(d))
+
+        r_gal_prev = rg
+
+    data['r_gal'] = r_gal
+    
+    r_gal_prev = 0
+    r_gal = np.array([])
+    for t in np.unique(data.time):
+        d = data[data.time==t]
+        r_gas = np.mean(d.host_r_gas)
+        r_half = np.mean(d.host_r_half)
+        rg = np.max([r_gas,r_half])
+
+        if np.isnan(rg):
+            rg = r_gal_prev
+
+        if verbose: print(f't = {t:1f} Gyr, host R_gal = {rg:.2f} kpc')
+        r_gal = np.append(r_gal,[rg]*len(d))
+
+        r_gal_prev = rg
+
+    data['host_r_gal'] = r_gal
+    
+    thermo_disk = (np.array(data.temp) < 1.2e4) & (np.array(data.rho) > 0.1)
+    
+    in_sat = np.array(data.in_sat)
+    other_sat = np.array(data.in_other_sat)
+    in_host = np.array(data.in_host) & ~in_sat & ~other_sat
+    
+    sat_disk = in_sat & thermo_disk
+    sat_halo = in_sat & ~thermo_disk
+    
+    host_disk = in_host & thermo_disk
+    host_halo = in_host & ~thermo_disk
+    
+    IGM = np.array(data.in_IGM)
+    
+    
+#    sat_disk = in_sat & (np.array(data.r) <= np.array(data.r_gal))
+#     sat_halo = in_sat & (np.array(data.r) > np.array(data.r_gal))
+#     sat_cool_disk = sat_disk & thermo_disk
+#     sat_hot_disk = sat_disk & ~thermo_disk
+#     sat_cool_halo = sat_halo & thermo_disk
+#     sat_hot_halo = sat_halo & ~thermo_disk
+
+#     in_host = np.array(data.in_host) & ~in_sat
+#     host_disk = in_host & (np.array(data.r_rel_host) <= np.array(data.host_r_gal))
+#     host_halo = in_host & (np.array(data.r_rel_host) > np.array(data.host_r_gal))
+
+#     other_sat = np.array(data.in_other_sat)
+#     IGM = np.array(data.in_IGM)
+    
+    
+    # basic classifications
+    data['sat_disk'] = sat_disk
+    data['sat_halo'] = sat_halo
+    data['host_disk'] = host_disk
+    data['host_halo'] = host_halo
+    data['other_sat'] = other_sat
+    data['IGM'] = IGM
+    
+    # more advanced classifications
+    #data['cool_disk'] = sat_cool_disk
+    #data['hot_disk'] = sat_hot_disk
+    #data['cool_halo'] = sat_cool_halo
+    #data['hot_halo'] = sat_hot_halo
+
+    return data
+
+
+
 def calc_angles(d):
     # get gas particle velocity
     v = np.array([d.vx,d.vy,d.vz])

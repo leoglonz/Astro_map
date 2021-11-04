@@ -95,7 +95,7 @@ def get_stored_filepaths_haloids(sim,z0haloid):
 def read_timesteps(sim):
     '''Function to read in the data file which contains quenching and infall times'''
     data = []
-    with open(f'/home/lonzaric/astro_research/ahdata/timesteps_data/{sim}.data', 'rb') as f:
+    with open(f'/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/timesteps_data/{sim}.data', 'rb') as f:
         while True:
             try:
                 data.append(pickle.load(f,encoding='latin1'))
