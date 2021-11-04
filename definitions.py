@@ -102,24 +102,6 @@ def calc_ejected_expelled(sim, haloid, save=True, verbose=True):
 
     return ejected, cooled, expelled, accreted
 
-
-
-# ------------------------------------------- #
-
-def calc_heated(gas, simtime):
-    '''
-    Overview:
-        Quick way to find SN-heated gas particles in general gas distributions.
-    
-    Inputs:
-    -> 'sim', identifier for simulation.
-    
-    Output:
-    -> array of gas particles affected by SN heating.
-    '''
-    #-----------------------------#
-    
-    return
     
 
 
