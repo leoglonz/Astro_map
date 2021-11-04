@@ -9,5 +9,6 @@ print('Compiling sim gas into sets (heated) for the following keys:', keys)
 for key in keys:
     sim = str(key[:4])
     haloid = int(key[5:])
-    # note that heated is automatically concatenated by 'calc_ejected_expelled'.
+    # note that heated is automatically concatenated by 'calc_ejected_expelled' without double counting, irrespective 
+    # of how many times this code is run.
     heated = calc_dsrg_heated(sim, haloid, save=True, verbose=False)

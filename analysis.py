@@ -493,7 +493,7 @@ def calc_discharged(sim, haloid, save=True, verbose=True):
 def calc_dsrg_heated(sim, haloid, save=True, verbose=True):
     import tqdm
     data = read_tracked_particles(sim, haloid, verbose=verbose)
-
+    
     if verbose: print(f'Now computing heated particles for {sim}-{haloid}...')
     
     preheated = pd.DataFrame()
@@ -580,6 +580,7 @@ def read_discharged():
        
     print(f'> Returning (predischarged, discharged, accreted, preheated, heated) for all available satellites <')
     return pre_dsrg, discharged, dsrg_accreted, preheated, heated
+
 
 ###########################
 # ------ end edits ------ #
