@@ -18,109 +18,113 @@ def get_keys():
     return keys
 
 
-def read_tracked_particles(sim, haloid, verbose=False):
-    
-    if verbose: print(f'Loading tracked particles for {sim}-{haloid}...')
-    
-    key = f'{sim}_{str(int(haloid))}'
+### The working implementation of 'read_tracked_particles' uses tracked_particles_v2.hdf5 instead of tracked_particles.hdf5. ###
 
-    # import the tracked particles dataset
-    path1 = '/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/tracked_particles.hdf5'
-    data = pd.read_hdf(path1, key=key)
+################################################
+# def read_tracked_particles(sim, haloid, verbose=False):
     
-    time = np.unique(data.time)
-    dt = time[1:]-time[:-1]
-    dt = np.append(dt[0], dt)
-    dt = dt[np.unique(data.time, return_inverse=True)[1]]
-    data['dt'] = dt
+#     if verbose: print(f'Loading tracked particles for {sim}-{haloid}...')
     
-    
-    if verbose: print('Successfully loaded')
-    
-    r_gal = np.array([])
-    for t in np.unique(data.time):
-        d = data[data.time==t]
-        r_gas = np.mean(d.sat_r_gas)
-        r_half = np.mean(d.sat_r_half)
-        rg = np.max([r_gas,r_half])
+#     key = f'{sim}_{str(int(haloid))}'
 
-        if np.isnan(rg):
-            rg = r_gal_prev
-
-        if verbose: print(f't = {t:1f} Gyr, satellite R_gal = {rg:.2f} kpc')
-        r_gal = np.append(r_gal,[rg]*len(d))
-
-        r_gal_prev = rg
-
-    data['r_gal'] = r_gal
+#     # import the tracked particles dataset
+#     path1 = '/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/tracked_particles.hdf5'
+#     data = pd.read_hdf(path1, key=key)
     
-    r_gal_prev = 0
-    r_gal = np.array([])
-    for t in np.unique(data.time):
-        d = data[data.time==t]
-        r_gas = np.mean(d.host_r_gas)
-        r_half = np.mean(d.host_r_half)
-        rg = np.max([r_gas,r_half])
-
-        if np.isnan(rg):
-            rg = r_gal_prev
-
-        if verbose: print(f't = {t:1f} Gyr, host R_gal = {rg:.2f} kpc')
-        r_gal = np.append(r_gal,[rg]*len(d))
-
-        r_gal_prev = rg
-
-    data['host_r_gal'] = r_gal
-    
-    thermo_disk = (np.array(data.temp) < 1.2e4) & (np.array(data.rho) > 0.1)
-    
-    in_sat = np.array(data.in_sat)
-    other_sat = np.array(data.in_other_sat)
-    in_host = np.array(data.in_host) & ~in_sat & ~other_sat
-    
-    sat_disk = in_sat & thermo_disk
-    sat_halo = in_sat & ~thermo_disk
-    
-    host_disk = in_host & thermo_disk
-    host_halo = in_host & ~thermo_disk
-    
-    IGM = np.array(data.in_IGM)
+#     time = np.unique(data.time)
+#     dt = time[1:]-time[:-1]
+#     dt = np.append(dt[0], dt)
+#     dt = dt[np.unique(data.time, return_inverse=True)[1]]
+#     data['dt'] = dt
     
     
-#    sat_disk = in_sat & (np.array(data.r) <= np.array(data.r_gal))
-#     sat_halo = in_sat & (np.array(data.r) > np.array(data.r_gal))
-#     sat_cool_disk = sat_disk & thermo_disk
-#     sat_hot_disk = sat_disk & ~thermo_disk
-#     sat_cool_halo = sat_halo & thermo_disk
-#     sat_hot_halo = sat_halo & ~thermo_disk
+#     if verbose: print('Successfully loaded')
+    
+#     r_gal = np.array([])
+#     for t in np.unique(data.time):
+#         d = data[data.time==t]
+#         r_gas = np.mean(d.sat_r_gas)
+#         r_half = np.mean(d.sat_r_half)
+#         rg = np.max([r_gas,r_half])
 
-#     in_host = np.array(data.in_host) & ~in_sat
-#     host_disk = in_host & (np.array(data.r_rel_host) <= np.array(data.host_r_gal))
-#     host_halo = in_host & (np.array(data.r_rel_host) > np.array(data.host_r_gal))
+#         if np.isnan(rg):
+#             rg = r_gal_prev
 
+#         if verbose: print(f't = {t:1f} Gyr, satellite R_gal = {rg:.2f} kpc')
+#         r_gal = np.append(r_gal,[rg]*len(d))
+
+#         r_gal_prev = rg
+
+#     data['r_gal'] = r_gal
+    
+#     r_gal_prev = 0
+#     r_gal = np.array([])
+#     for t in np.unique(data.time):
+#         d = data[data.time==t]
+#         r_gas = np.mean(d.host_r_gas)
+#         r_half = np.mean(d.host_r_half)
+#         rg = np.max([r_gas,r_half])
+
+#         if np.isnan(rg):
+#             rg = r_gal_prev
+
+#         if verbose: print(f't = {t:1f} Gyr, host R_gal = {rg:.2f} kpc')
+#         r_gal = np.append(r_gal,[rg]*len(d))
+
+#         r_gal_prev = rg
+
+#     data['host_r_gal'] = r_gal
+    
+#     thermo_disk = (np.array(data.temp) < 1.2e4) & (np.array(data.rho) > 0.1)
+    
+#     in_sat = np.array(data.in_sat)
 #     other_sat = np.array(data.in_other_sat)
+#     in_host = np.array(data.in_host) & ~in_sat & ~other_sat
+    
+#     sat_disk = in_sat & thermo_disk
+#     sat_halo = in_sat & ~thermo_disk
+    
+#     host_disk = in_host & thermo_disk
+#     host_halo = in_host & ~thermo_disk
+    
 #     IGM = np.array(data.in_IGM)
     
     
-    # basic classifications
-    data['sat_disk'] = sat_disk
-    data['sat_halo'] = sat_halo
-    data['host_disk'] = host_disk
-    data['host_halo'] = host_halo
-    data['other_sat'] = other_sat
-    data['IGM'] = IGM
+# #    sat_disk = in_sat & (np.array(data.r) <= np.array(data.r_gal))
+# #     sat_halo = in_sat & (np.array(data.r) > np.array(data.r_gal))
+# #     sat_cool_disk = sat_disk & thermo_disk
+# #     sat_hot_disk = sat_disk & ~thermo_disk
+# #     sat_cool_halo = sat_halo & thermo_disk
+# #     sat_hot_halo = sat_halo & ~thermo_disk
+
+# #     in_host = np.array(data.in_host) & ~in_sat
+# #     host_disk = in_host & (np.array(data.r_rel_host) <= np.array(data.host_r_gal))
+# #     host_halo = in_host & (np.array(data.r_rel_host) > np.array(data.host_r_gal))
+
+# #     other_sat = np.array(data.in_other_sat)
+# #     IGM = np.array(data.in_IGM)
     
-    # more advanced classifications
-    #data['cool_disk'] = sat_cool_disk
-    #data['hot_disk'] = sat_hot_disk
-    #data['cool_halo'] = sat_cool_halo
-    #data['hot_halo'] = sat_hot_halo
+    
+#     # basic classifications
+#     data['sat_disk'] = sat_disk
+#     data['sat_halo'] = sat_halo
+#     data['host_disk'] = host_disk
+#     data['host_halo'] = host_halo
+#     data['other_sat'] = other_sat
+#     data['IGM'] = IGM
+    
+#     # more advanced classifications
+#     #data['cool_disk'] = sat_cool_disk
+#     #data['hot_disk'] = sat_hot_disk
+#     #data['cool_halo'] = sat_cool_halo
+#     #data['hot_halo'] = sat_hot_halo
 
-    return data
+#     return data
+################################################
 
 
 
-def read_tracked_particles_v2(sim, haloid, verbose=False):
+def read_tracked_particles(sim, haloid, verbose=False):
     
     if verbose: print(f'Loading tracked particles for {sim}-{haloid}...')
     
@@ -188,35 +192,13 @@ def read_tracked_particles_v2(sim, haloid, verbose=False):
     
     IGM = np.array(data.in_IGM)
     
-    
-#    sat_disk = in_sat & (np.array(data.r) <= np.array(data.r_gal))
-#     sat_halo = in_sat & (np.array(data.r) > np.array(data.r_gal))
-#     sat_cool_disk = sat_disk & thermo_disk
-#     sat_hot_disk = sat_disk & ~thermo_disk
-#     sat_cool_halo = sat_halo & thermo_disk
-#     sat_hot_halo = sat_halo & ~thermo_disk
-
-#     in_host = np.array(data.in_host) & ~in_sat
-#     host_disk = in_host & (np.array(data.r_rel_host) <= np.array(data.host_r_gal))
-#     host_halo = in_host & (np.array(data.r_rel_host) > np.array(data.host_r_gal))
-
-#     other_sat = np.array(data.in_other_sat)
-#     IGM = np.array(data.in_IGM)
-    
-    
-    # basic classifications
+    # basic location classifications.
     data['sat_disk'] = sat_disk
     data['sat_halo'] = sat_halo
     data['host_disk'] = host_disk
     data['host_halo'] = host_halo
     data['other_sat'] = other_sat
     data['IGM'] = IGM
-    
-    # more advanced classifications
-    #data['cool_disk'] = sat_cool_disk
-    #data['hot_disk'] = sat_hot_disk
-    #data['cool_halo'] = sat_cool_halo
-    #data['hot_halo'] = sat_hot_halo
 
     return data
 
@@ -538,9 +520,9 @@ def calc_discharged(sim, haloid, save=True, verbose=True):
     data = read_tracked_particles(sim, haloid, verbose=verbose)
 
     if verbose: print(f'Now computing discharged particles for {sim}-{haloid}...')
-    pre_dsrg = pd.DataFrame() # discharged gas particles but with their properties before discharge.
+    predischarged = pd.DataFrame() # discharged gas particles but with their properties before discharge.
     discharged = pd.DataFrame() # gas particles that are removed from their satellite's disk
-    dsrg_accreted = pd.DataFrame() # discharged gas particles that are reaccreted.
+    dsrg_accreted = pd.DataFrame() # gas accreted following a discharge event.
 
     
     pids = np.unique(data.pid)
@@ -555,20 +537,25 @@ def calc_discharged(sim, haloid, save=True, verbose=True):
 
         for i,t2 in enumerate(time[1:]):
                 i += 1
-                if sat_disk[i-1] and outside_disk[i]:
+                if (sat_disk[i-1] and outside_disk[i]):
                     in_ = dat[time==time[i-1]].copy()
                     out = dat[time==t2].copy()
-                    pre_dsrg = pd.concat([pre_dsrg, in_])
+                    predischarged = pd.concat([predischarged, in_])
                     discharged = pd.concat([discharged, out])
 
-                if outside_disk[i-1] and sat_disk[i]:
-                    out = dat[time==t2].copy()
-                    dsrg_accreted = pd.concat([dsrg_accreted, out])
+                # stopping condition to avoid enumeration overflow for accreted calc:
+                if i == len(time)-1:
+                    break
+                    
+                # specifically picking out that gas accreted after one time step.
+                if (sat_disk[i-1] and outside_disk[i] and sat_disk[i+1]):
+                    acc = dat[time==t2].copy()
+                    dsrg_accreted = pd.concat([dsrg_accreted, acc])
                  
 
     # apply the calc_angles function along the rows of discharged particles.
-    print('Calculating preheated angles.')
-    pre_dsrg = pre_dsrg.apply(calc_angles, axis=1)
+    print('Calculating predischarge angles.')
+    predischarged = predischarged.apply(calc_angles, axis=1)
     print('Calculating discharged angles.')
     discharged = discharged.apply(calc_angles, axis=1)
    
@@ -576,8 +563,8 @@ def calc_discharged(sim, haloid, save=True, verbose=True):
     if save:
         key = f'{sim}_{str(int(haloid))}'
         filepath = '/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/predischarged_particles.hdf5'
-        print(f'Saving {key} preheated particle dataset to {filepath}')
-        pre_dsrg.to_hdf(filepath, key=key)
+        print(f'Saving {key} predischarged particle dataset to {filepath}')
+        predischarged.to_hdf(filepath, key=key)
  
         filepath = '/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/discharged_particles.hdf5'
         print(f'Saving {key} discharged particle dataset to {filepath}')
@@ -590,7 +577,7 @@ def calc_discharged(sim, haloid, save=True, verbose=True):
         
     print(f'> Returning (predischarged, discharged, dsrg_accreted) datasets <')
 
-    return pre_dsrg, discharged, dsrg_accreted
+    return predischarged, discharged, dsrg_accreted
 
 
 
@@ -649,7 +636,7 @@ def calc_dsrg_heated(sim, haloid, save=True, verbose=True):
     
     
 def read_discharged():
-    pre_dsrg = pd.DataFrame()
+    predischarged = pd.DataFrame()
     discharged = pd.DataFrame()
     dsrg_accreted = pd.DataFrame()
     preheated= pd.DataFrame()
@@ -661,9 +648,10 @@ def read_discharged():
         i += 1
         sim = key[:4]
         haloid = int(key[5:])
-        pre_dsrg1 = pd.read_hdf('/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/predischarged_particles.hdf5', key=key)
-        pre_dsrg1['key'] = key
-        pre_dsrg = pd.concat([pre_dsrg, pre_dsrg1])
+        predischarged1 = pd.read_hdf('/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/predischarged_particles.hdf5',\
+             key=key)
+        predischarged1['key'] = key
+        predischarged = pd.concat([predischarged, predischarged1])
         
         discharged1 = pd.read_hdf('/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/discharged_particles.hdf5', key=key)
         discharged1['key'] = key
@@ -683,7 +671,7 @@ def read_discharged():
         heated = pd.concat([heated, heated1])
        
     print(f'> Returning (predischarged, discharged, accreted, preheated, heated) for all available satellites <')
-    return pre_dsrg, discharged, dsrg_accreted, preheated, heated
+    return predischarged, discharged, dsrg_accreted, preheated, heated
 
 
 ###########################

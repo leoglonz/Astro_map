@@ -1,3 +1,6 @@
+# Archived script for compiling set of accreted gas particles; no longer used because it does not specifically screen for
+# particles accreted following a discharge event.
+
 from analysis import *
 
 keys = ['h148_13','h148_28','h148_37','h148_45','h148_68','h148_80','h148_283',

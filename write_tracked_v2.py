@@ -1,4 +1,8 @@
+# Simple execution file to compute the virial mass attributes for each gas particle's satellite galaxy; this value is then
+# added to the output dataset as the callable key 'sat_Mvir'.
+
 from analysis import *
+import pandas as pd
 import tqdm
 
 keys = ['h148_13','h148_28','h148_37','h148_45','h148_68','h148_80','h148_283',
@@ -16,7 +20,9 @@ for key in keys:
     ts = timesteps[timesteps.z0haloid==haloid]
     ts = ts.rename({'mass':'sat_Mvir'}, axis=1)
     ts = ts[['t','sat_Mvir']]
+    ts['sat_Mvir'] = ts['sat_Mvir'].astype('float')
 
+    
     data = pd.merge_asof(data, ts.sort_values('t'), left_on='time', right_on='t', direction='nearest', tolerance=1)
     
     filepath = '/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/tracked_particles_v2.hdf5'
