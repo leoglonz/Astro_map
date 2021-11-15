@@ -1,8 +1,8 @@
-# The purpose of this file is to perform a series of data manipuation and processing commands to particle tracking data in bulk. 
-# In particular, functions in this file import particle tracking and ram pressure data, join them as necessary, calculate kinetic 
-# and potential energies of particles, classify particles as disk vs. halo, identify ejected or expulsed particles, and more. 
-# The reason these functions are written here is so that we can ensure that we are using the same data processing procedures throughout 
-# the analysis and not have to repeat this code for each analysis component. 
+# The purpose of this file is to perform a series of data manipuation and processing commands to particle tracking data in bulk.
+# In particular, functions in this file import particle tracking and ram pressure data, join them as necessary, calculate kinetic
+# and potential energies of particles, classify particles as disk vs. halo, identify ejected or expulsed particles, and more.
+# The reason these functions are written here is so that we can ensure that we are using the same data processing procedures throughout
+# the analysis and not have to repeat this code for each analysis component.
 import pynbody
 import pandas as pd
 import numpy as np
@@ -18,6 +18,112 @@ def get_keys():
     return keys
 
 
+### The working implementation of 'read_tracked_particles' uses tracked_particles_v2.hdf5 instead of tracked_particles.hdf5. ###
+
+################################################
+# def read_tracked_particles(sim, haloid, verbose=False):
+    
+#     if verbose: print(f'Loading tracked particles for {sim}-{haloid}...')
+    
+#     key = f'{sim}_{str(int(haloid))}'
+
+#     # import the tracked particles dataset
+#     path1 = '~/Desktop/Stellar_Feedback_Code/SNeData/tracked_particles.hdf5'
+#     data = pd.read_hdf(path1, key=key)
+    
+#     time = np.unique(data.time)
+#     dt = time[1:]-time[:-1]
+#     dt = np.append(dt[0], dt)
+#     dt = dt[np.unique(data.time, return_inverse=True)[1]]
+#     data['dt'] = dt
+    
+    
+#     if verbose: print('Successfully loaded')
+    
+#     r_gal = np.array([])
+#     for t in np.unique(data.time):
+#         d = data[data.time==t]
+#         r_gas = np.mean(d.sat_r_gas)
+#         r_half = np.mean(d.sat_r_half)
+#         rg = np.max([r_gas,r_half])
+
+#         if np.isnan(rg):
+#             rg = r_gal_prev
+
+#         if verbose: print(f't = {t:1f} Gyr, satellite R_gal = {rg:.2f} kpc')
+#         r_gal = np.append(r_gal,[rg]*len(d))
+
+#         r_gal_prev = rg
+
+#     data['r_gal'] = r_gal
+    
+#     r_gal_prev = 0
+#     r_gal = np.array([])
+#     for t in np.unique(data.time):
+#         d = data[data.time==t]
+#         r_gas = np.mean(d.host_r_gas)
+#         r_half = np.mean(d.host_r_half)
+#         rg = np.max([r_gas,r_half])
+
+#         if np.isnan(rg):
+#             rg = r_gal_prev
+
+#         if verbose: print(f't = {t:1f} Gyr, host R_gal = {rg:.2f} kpc')
+#         r_gal = np.append(r_gal,[rg]*len(d))
+
+#         r_gal_prev = rg
+
+#     data['host_r_gal'] = r_gal
+    
+#     thermo_disk = (np.array(data.temp) < 1.2e4) & (np.array(data.rho) > 0.1)
+    
+#     in_sat = np.array(data.in_sat)
+#     other_sat = np.array(data.in_other_sat)
+#     in_host = np.array(data.in_host) & ~in_sat & ~other_sat
+    
+#     sat_disk = in_sat & thermo_disk
+#     sat_halo = in_sat & ~thermo_disk
+    
+#     host_disk = in_host & thermo_disk
+#     host_halo = in_host & ~thermo_disk
+    
+#     IGM = np.array(data.in_IGM)
+    
+    
+# #    sat_disk = in_sat & (np.array(data.r) <= np.array(data.r_gal))
+# #     sat_halo = in_sat & (np.array(data.r) > np.array(data.r_gal))
+# #     sat_cool_disk = sat_disk & thermo_disk
+# #     sat_hot_disk = sat_disk & ~thermo_disk
+# #     sat_cool_halo = sat_halo & thermo_disk
+# #     sat_hot_halo = sat_halo & ~thermo_disk
+
+# #     in_host = np.array(data.in_host) & ~in_sat
+# #     host_disk = in_host & (np.array(data.r_rel_host) <= np.array(data.host_r_gal))
+# #     host_halo = in_host & (np.array(data.r_rel_host) > np.array(data.host_r_gal))
+
+# #     other_sat = np.array(data.in_other_sat)
+# #     IGM = np.array(data.in_IGM)
+    
+    
+#     # basic classifications
+#     data['sat_disk'] = sat_disk
+#     data['sat_halo'] = sat_halo
+#     data['host_disk'] = host_disk
+#     data['host_halo'] = host_halo
+#     data['other_sat'] = other_sat
+#     data['IGM'] = IGM
+    
+#     # more advanced classifications
+#     #data['cool_disk'] = sat_cool_disk
+#     #data['hot_disk'] = sat_hot_disk
+#     #data['cool_halo'] = sat_cool_halo
+#     #data['hot_halo'] = sat_hot_halo
+
+#     return data
+################################################
+
+
+
 def read_tracked_particles(sim, haloid, verbose=False):
     
     if verbose: print(f'Loading tracked particles for {sim}-{haloid}...')
@@ -25,7 +131,7 @@ def read_tracked_particles(sim, haloid, verbose=False):
     key = f'{sim}_{str(int(haloid))}'
 
     # import the tracked particles dataset
-    path1 = '~/Desktop/Stellar_Feedback_Code/SNeData/tracked_particles.hdf5'
+    path1 = '~/Desktop/Stellar_Feedback_Code/SNeData/tracked_particles_v2.hdf5'
     data = pd.read_hdf(path1, key=key)
     
     time = np.unique(data.time)
@@ -86,37 +192,17 @@ def read_tracked_particles(sim, haloid, verbose=False):
     
     IGM = np.array(data.in_IGM)
     
-    
-#    sat_disk = in_sat & (np.array(data.r) <= np.array(data.r_gal))
-#     sat_halo = in_sat & (np.array(data.r) > np.array(data.r_gal))
-#     sat_cool_disk = sat_disk & thermo_disk
-#     sat_hot_disk = sat_disk & ~thermo_disk
-#     sat_cool_halo = sat_halo & thermo_disk
-#     sat_hot_halo = sat_halo & ~thermo_disk
-
-#     in_host = np.array(data.in_host) & ~in_sat
-#     host_disk = in_host & (np.array(data.r_rel_host) <= np.array(data.host_r_gal))
-#     host_halo = in_host & (np.array(data.r_rel_host) > np.array(data.host_r_gal))
-
-#     other_sat = np.array(data.in_other_sat)
-#     IGM = np.array(data.in_IGM)
-    
-    
-    # basic classifications
+    # basic location classifications.
     data['sat_disk'] = sat_disk
     data['sat_halo'] = sat_halo
     data['host_disk'] = host_disk
     data['host_halo'] = host_halo
     data['other_sat'] = other_sat
     data['IGM'] = IGM
-    
-    # more advanced classifications
-    #data['cool_disk'] = sat_cool_disk
-    #data['hot_disk'] = sat_hot_disk
-    #data['cool_halo'] = sat_cool_halo
-    #data['hot_halo'] = sat_hot_halo
 
     return data
+
+
 
 def calc_angles(d):
     # get gas particle velocity
@@ -142,7 +228,7 @@ def calc_angles_tidal(d):
     # get gas particle velocity
     v = np.array([d.vx,d.vy,d.vz])
 
-    # instead of CGM velocity, get vector pointing from satellite to host (i.e. host position in the satellite rest frame) 
+    # instead of CGM velocity, get vector pointing from satellite to host (i.e. host position in the satellite rest frame)
     r_sat =np.array([d.sat_Xc,d.sat_Yc,d.sat_Zc])
     r_host = np.array([d.host_Xc,d.host_Yc,d.host_Zc])
     r_rel = r_host - r_sat
@@ -286,7 +372,7 @@ def read_all_ejected_expelled():
     return ejected, cooled, expelled, accreted
 
 def read_ram_pressure(sim, haloid):
-    '''Function to read in the ram pressure dataset, merge it with particle and flow information, and return a dataset containing 
+    '''Function to read in the ram pressure dataset, merge it with particle and flow information, and return a dataset containing
     rates of gas flow in additiont to ram pressure information.'''
     
     # Load in ram pressure data
@@ -306,8 +392,8 @@ def read_ram_pressure(sim, haloid):
     # Load timescales information to add quenching time and quenching timescale (tau)
     timescales = read_timescales()
     ts = timescales[(timescales.sim==sim)&(timescales.haloid==haloid)]
-    data['tau'] = ts.tinfall.iloc[0] - ts.tquench.iloc[0]    
-    data['tquench'] = age - ts.tquench.iloc[0]   
+    data['tau'] = ts.tinfall.iloc[0] - ts.tquench.iloc[0]
+    data['tquench'] = age - ts.tquench.iloc[0]
 
     # load ejected/expelled data
     ejected,cooled,expelled,accreted = read_ejected_expelled(sim, haloid)
@@ -339,7 +425,7 @@ def read_ram_pressure(sim, haloid):
     # get rates of heated (ejected) gas
     data = pd.merge_asof(data, ejected.groupby(['time']).mass.sum().reset_index(), left_on='t', right_on='time')
     data = data.rename(columns={'mass':'M_ejected'}) # mass ejected in that snapshot
-    data['Mdot_ejected'] = data.M_ejected / data.dt # rate of mass ejection 
+    data['Mdot_ejected'] = data.M_ejected / data.dt # rate of mass ejection
     data['Mdot_ejected_by_Mgas'] = data.Mdot_ejected / Mgas_div # rate of ejection divided by M_gas
     data['Mdot_ejected_by_Mdisk'] = data.Mdot_ejected / Mdisk_div # rate of ejection divided by M_disk
 
@@ -419,14 +505,14 @@ def read_all_ram_pressure():
         sim = key[:4]
         haloid = int(key[5:])
         data = read_ram_pressure(sim, haloid)
-        data_all = pd.concat([data_all,data])  
+        data_all = pd.concat([data_all,data])
     
     return data_all
 
 
 
 ################################################
-# ------ begin Lonzarich edits 13-10-21 ------ # 
+# ------ begin Lonzarich edits 13-10-21 ------ #
 ################################################
 
 def calc_discharged(sim, haloid, save=True, verbose=True):
@@ -434,9 +520,9 @@ def calc_discharged(sim, haloid, save=True, verbose=True):
     data = read_tracked_particles(sim, haloid, verbose=verbose)
 
     if verbose: print(f'Now computing discharged particles for {sim}-{haloid}...')
-    pre_dsrg = pd.DataFrame() # discharged gas particles but with their properties before discharge.
+    predischarged = pd.DataFrame() # discharged gas particles but with their properties before discharge.
     discharged = pd.DataFrame() # gas particles that are removed from their satellite's disk
-    dsrg_accreted = pd.DataFrame() # discharged gas particles that are reaccreted.
+    dsrg_accreted = pd.DataFrame() # gas accreted following a discharge event.
 
     
     pids = np.unique(data.pid)
@@ -451,20 +537,25 @@ def calc_discharged(sim, haloid, save=True, verbose=True):
 
         for i,t2 in enumerate(time[1:]):
                 i += 1
-                if sat_disk[i-1] and outside_disk[i]:
+                if (sat_disk[i-1] and outside_disk[i]):
                     in_ = dat[time==time[i-1]].copy()
                     out = dat[time==t2].copy()
-                    pre_dsrg = pd.concat([pre_dsrg, in_])
+                    predischarged = pd.concat([predischarged, in_])
                     discharged = pd.concat([discharged, out])
 
-                if outside_disk[i-1] and sat_disk[i]:
-                    out = dat[time==t2].copy()
-                    dsrg_accreted = pd.concat([dsrg_accreted, out])
+                # stopping condition to avoid enumeration overflow for accreted calc:
+                if i == len(time)-1:
+                    break
+                    
+                # specifically picking out that gas accreted after one time step.
+                if (sat_disk[i-1] and outside_disk[i] and sat_disk[i+1]):
+                    acc = dat[time==t2].copy()
+                    dsrg_accreted = pd.concat([dsrg_accreted, acc])
                  
 
     # apply the calc_angles function along the rows of discharged particles.
-    print('Calculating preheated angles.')
-    pre_dsrg = pre_dsrg.apply(calc_angles, axis=1)
+    print('Calculating predischarge angles.')
+    predischarged = predischarged.apply(calc_angles, axis=1)
     print('Calculating discharged angles.')
     discharged = discharged.apply(calc_angles, axis=1)
    
@@ -472,8 +563,8 @@ def calc_discharged(sim, haloid, save=True, verbose=True):
     if save:
         key = f'{sim}_{str(int(haloid))}'
         filepath = '~/Desktop/Stellar_Feedback_Code/SNeData/predischarged_particles.hdf5'
-        print(f'Saving {key} preheated particle dataset to {filepath}')
-        pre_dsrg.to_hdf(filepath, key=key)
+        print(f'Saving {key} predischarged particle dataset to {filepath}')
+        predischarged.to_hdf(filepath, key=key)
  
         filepath = '~/Desktop/Stellar_Feedback_Code/SNeData/discharged_particles.hdf5'
         print(f'Saving {key} discharged particle dataset to {filepath}')
@@ -486,14 +577,14 @@ def calc_discharged(sim, haloid, save=True, verbose=True):
         
     print(f'> Returning (predischarged, discharged, dsrg_accreted) datasets <')
 
-    return pre_dsrg, discharged, dsrg_accreted
+    return predischarged, discharged, dsrg_accreted
 
 
 
 def calc_dsrg_heated(sim, haloid, save=True, verbose=True):
     import tqdm
     data = read_tracked_particles(sim, haloid, verbose=verbose)
-
+    
     if verbose: print(f'Now computing heated particles for {sim}-{haloid}...')
     
     preheated = pd.DataFrame()
@@ -545,7 +636,7 @@ def calc_dsrg_heated(sim, haloid, save=True, verbose=True):
     
     
 def read_discharged():
-    pre_dsrg = pd.DataFrame()
+    predischarged = pd.DataFrame()
     discharged = pd.DataFrame()
     dsrg_accreted = pd.DataFrame()
     preheated= pd.DataFrame()
@@ -557,9 +648,10 @@ def read_discharged():
         i += 1
         sim = key[:4]
         haloid = int(key[5:])
-        pre_dsrg1 = pd.read_hdf('~/Desktop/Stellar_Feedback_Code/SNeData/predischarged_particles.hdf5', key=key)
-        pre_dsrg1['key'] = key
-        pre_dsrg = pd.concat([pre_dsrg, pre_dsrg1])
+        predischarged1 = pd.read_hdf('~/Desktop/Stellar_Feedback_Code/SNeData/predischarged_particles.hdf5',\
+             key=key)
+        predischarged1['key'] = key
+        predischarged = pd.concat([predischarged, predischarged1])
         
         discharged1 = pd.read_hdf('~/Desktop/Stellar_Feedback_Code/SNeData/discharged_particles.hdf5', key=key)
         discharged1['key'] = key
@@ -579,7 +671,8 @@ def read_discharged():
         heated = pd.concat([heated, heated1])
        
     print(f'> Returning (predischarged, discharged, accreted, preheated, heated) for all available satellites <')
-    return pre_dsrg, discharged, dsrg_accreted, preheated, heated
+    return predischarged, discharged, dsrg_accreted, preheated, heated
+
 
 ###########################
 # ------ end edits ------ #
