@@ -76,7 +76,7 @@ setattr(mpl.axes.Axes, "plot_median", plot_median)
 # define functions for basic data manipulation, importing, etc. used by everything
 def get_stored_filepaths_haloids(sim,z0haloid):
     # get snapshot paths and haloids from stored file
-    with open('/home/lonzaric/astro_research/ahdata/filepaths_haloids.pickle','rb') as f:
+    with open('/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/filepaths_haloids.pickle','rb') as f:
         d = pickle.load(f)
     try:
         filepaths = d['filepaths'][sim]
@@ -87,7 +87,7 @@ def get_stored_filepaths_haloids(sim,z0haloid):
         haloids = d['haloids'][sim][z0haloid]
         h1ids = d['haloids'][sim][1]
     except KeyError:
-        print('z0haloid not found, perhaps this is a halo that has no stars at z=0, and therefore isnt tracked')
+        print('z0haloid not found, perhaps this is a halo that has no stars at z=0, and therefore isn\'t tracked')
         raise
     return filepaths,haloids,h1ids
     
@@ -109,7 +109,7 @@ def read_timesteps(sim):
 def read_timescales():
     '''Function to read in the data file which contains quenching and infall times'''
     data = []
-    with open('/home/lonzaric/astro_research/ahdata/QuenchingTimescales.data', 'rb') as f:
+    with open('/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/QuenchingTimescales.data', 'rb') as f:
         while True:
             try:
                 data.append(pickle.load(f,encoding='latin1'))
@@ -123,7 +123,7 @@ def read_timescales():
 def read_infall_properties():
     '''Function to read in the data file with quenching timescales and satellite properties at infall.'''
     data = []
-    with open(f'/home/lonzaric/astro_research/ahdata/QuenchingTimescales_InfallProperties.data','rb') as f:
+    with open(f'/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/QuenchingTimescales_InfallProperties.data','rb') as f:
         while True:
             try: 
                 data.append(pickle.load(f))

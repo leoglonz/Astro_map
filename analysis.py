@@ -371,16 +371,20 @@ def read_all_ejected_expelled():
     print(f'> Returning (ejected, cooled, expelled, accreted) for all available satellites <')
     return ejected, cooled, expelled, accreted
 
+
+
 def read_ram_pressure(sim, haloid):
-    '''Function to read in the ram pressure dataset, merge it with particle and flow information, and return a dataset containing 
-    rates of gas flow in additiont to ram pressure information.'''
+    '''
+    Function to read in the ram pressure dataset, merge it with particle and flow information, and return a dataset containing 
+    rates of gas flow in addition to ram pressure information.
+    '''
     
-    # Load in ram pressure data
+    # loading ram pressure data for specified simulation and haloid.
     path = '/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/ram_pressure.hdf5'
     key = f'{sim}_{haloid}'
     data = pd.read_hdf('/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/ram_pressure.hdf5', key=key)
     
-    # convert data to numpy arrays (i.e. remove pynbody unit information) and calculate ratio
+    # converting data to numpy arrays (i.e. remove pynbody unit information) and calculating ratio
     data['Pram_adv'] = np.array(data.Pram_adv,dtype=float)
     data['Pram'] = np.array(data.Pram,dtype=float)
     data['Prest'] = np.array(data.Prest,dtype=float)
@@ -389,74 +393,59 @@ def read_ram_pressure(sim, haloid):
     dt = np.append(dt[0],dt)
     data['dt'] = dt
     
-    # Load timescales information to add quenching time and quenching timescale (tau)
+    # loading timescale information to add quenching time and quenching timescale (tau).
     timescales = read_timescales()
     ts = timescales[(timescales.sim==sim)&(timescales.haloid==haloid)]
     data['tau'] = ts.tinfall.iloc[0] - ts.tquench.iloc[0]    
     data['tquench'] = age - ts.tquench.iloc[0]   
 
-    # load ejected/expelled data
-    ejected,cooled,expelled,accreted = read_ejected_expelled(sim, haloid)
+    # loading discharged particle data.
+    predischarged, discharged, accreted, preheated, heated = read_discharged()
 
-    # Mgas_div is the gas mass we divide by when plotting rates. this is the gas mass 1 snapshot ago
+    # Mgas_div is the gas mass we divide by when plotting rates. this is the gas mass 1 snapshot past.
     Mgas_div = np.array(data.M_gas,dtype=float)
     Mgas_div = np.append(Mgas_div[0], Mgas_div[:-1])
     data['Mgas_div'] = Mgas_div
     
-    # load in particle data
+    # load in particle data.
     particles = read_tracked_particles(sim,haloid)
-    # m_disk = 0 if particle is not in the disk, = particle mass if it is. this allows us to compute total mass in the disk
+    # m_disk = 0 if particle is not in disk, = particle mass if it is. This allows us to compute total mass in the disk.
     particles['m_disk'] = np.array(particles.mass,dtype=float)*np.array(particles.sat_disk,dtype=int)
     particles['m_SNeaff'] = np.array(particles.mass,dtype=float)*np.array(particles.coolontime > particles.time, dtype=int)
     
-    # group the particles data by unique times and sum the mass of particles that are SNe affected, to get total mass
+    # group particles data by unique times and sum the mass of particles that are SNe affected, to get total mass.
     data = pd.merge_asof(data, particles.groupby(['time']).m_SNeaff.sum().reset_index(), left_on='t', right_on='time')
     data = data.rename(columns={'m_SNeaff':'M_SNeaff'})
     
-    # group the particles data by unique times and sum the mass of particles that are in the disk, to get total mass
+    # group particle data by unique times and sum the mass of particles that are in the disk, to get total mass.
     data = pd.merge_asof(data, particles.groupby(['time']).m_disk.sum().reset_index(), left_on='t', right_on='time')
     data = data.rename(columns={'m_disk':'M_disk'})
     
-    # analagous to Mgas_div above
+    # analagous to Mgas_div above.
     Mdisk_div = np.array(data.M_disk,dtype=float)
     Mdisk_div = np.append(Mdisk_div[0], Mdisk_div[:-1])
     data['Mdisk_div'] = Mdisk_div
     
-    # get rates of heated (ejected) gas
-    data = pd.merge_asof(data, ejected.groupby(['time']).mass.sum().reset_index(), left_on='t', right_on='time')
-    data = data.rename(columns={'mass':'M_ejected'}) # mass ejected in that snapshot
-    data['Mdot_ejected'] = data.M_ejected / data.dt # rate of mass ejection 
-    data['Mdot_ejected_by_Mgas'] = data.Mdot_ejected / Mgas_div # rate of ejection divided by M_gas
-    data['Mdot_ejected_by_Mdisk'] = data.Mdot_ejected / Mdisk_div # rate of ejection divided by M_disk
+    # fetching rates of predischarged gas.
+    data = pd.merge_asof(data, predischarged.groupby(['time']).mass.sum().reset_index(), left_on='t', right_on='time')
+    data = data.rename(columns={'mass':'M_predischarged'}) # mass ejected in that snapshot
+    data['Mdot_predischarged'] = data.M_predischarged / data.dt # rate of mass ejection 
+    data['Mdot_predischarged_by_Mgas'] = data.Mdot_predischarged / Mgas_div # rate of ejection divided by M_gas
+    data['Mdot_predischarged_by_Mdisk'] = data.Mdot_predischarged / Mdisk_div # rate of ejection divided by M_disk
 
-    # next, cooled gas
-    data = pd.merge_asof(data, cooled.groupby(['time']).mass.sum().reset_index(), left_on='t', right_on='time')
-    data = data.rename(columns={'mass':'M_cooled'})
-    data['Mdot_cooled'] = data.M_cooled / data.dt
-    data['Mdot_cooled_by_Mgas'] = data.Mdot_cooled / Mgas_div
-    data['Mdot_cooled_by_Mdisk'] = data.Mdot_cooled / Mdisk_div
+    # fetching rates of all discharged gas.
+    data = pd.merge_asof(data, discharged.groupby(['time']).mass.sum().reset_index(), left_on='t', right_on='time')
+    data = data.rename(columns={'mass':'M_discharged'}) 
+    data['Mdot_discharged'] = data.M_discharged / data.dt 
+    data['Mdot_discharged_by_Mgas'] = data.Mdot_discharged / Mgas_div 
+    data['Mdot_discharged_by_Mdisk'] = data.Mdot_discharged / Mdisk_div 
 
-    # next, expelled gas (including gas expelled directly from the disk and gas expelled within a certain exit angle)
-    expelled_disk = expelled[expelled.state1 == 'sat_disk']
-    expelled_th30 = expelled[expelled.angle <= 30]
-    
-    data = pd.merge_asof(data, expelled.groupby(['time']).mass.sum().reset_index(), left_on='t', right_on='time')
-    data = data.rename(columns={'mass':'M_expelled'})
-    data['Mdot_expelled'] = data.M_expelled / data.dt
-    data['Mdot_expelled_by_Mgas'] = data.Mdot_expelled / Mgas_div
-
-    # gas expelled directly from the disk
-    data = pd.merge_asof(data, expelled_disk.groupby(['time']).mass.sum().reset_index(), left_on='t', right_on='time')
-    data = data.rename(columns={'mass':'M_expelled_disk'})
-    data['Mdot_expelled_disk'] = data.M_expelled_disk / data.dt
-    data['Mdot_expelled_disk_by_Mgas'] = data.Mdot_expelled_disk / Mgas_div
-    data['Mdot_expelled_disk_by_Mdisk'] = data.Mdot_expelled_disk / Mdisk_div
-
-    # gas expelled within an exit angle of 30 degrees
-    data = pd.merge_asof(data, expelled_th30.groupby(['time']).mass.sum().reset_index(), left_on='t', right_on='time')
-    data = data.rename(columns={'mass':'M_expelled_th30'})
-    data['Mdot_expelled_th30'] = data.M_expelled_th30 / data.dt
-    data['Mdot_expelled_th30_by_Mgas'] = data.Mdot_expelled_th30 / Mgas_div
+    # next, for accreted gas.
+    data = pd.merge_asof(data, acccreted.groupby(['time']).mass.sum().reset_index(), left_on='t', right_on='time')
+    data = data.rename(columns={'mass':'M_acccreted'})
+    data['Mdot_acccreted'] = data.M_acccreted / data.dt
+    data['Mdot_acccreted_by_Mgas'] = data.Mdot_acccreted / Mgas_div
+    data['Mdot_acccreted_by_Mdisk'] = data.Mdot_acccreted / Mdisk_div
     
     # finally, accreted gas
     accreted_disk = accreted[accreted.state2 == 'sat_disk']
