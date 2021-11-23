@@ -519,7 +519,7 @@ def calc_discharged(sim, haloid, save=True, verbose=True):
         dat = data[data.pid==pid]
 
         sat_disk = np.array(dat.sat_disk, dtype=bool)
-        in_sat = np.array(data.in_sat, dtype=bool)
+        in_sat = np.array(dat.in_sat, dtype=bool)
         outside_disk = ~sat_disk
         
         time = np.array(dat.time, dtype=float)
@@ -537,7 +537,7 @@ def calc_discharged(sim, haloid, save=True, verbose=True):
                     break
                     
                 # specifically picking out that gas accreted after one time step.
-                if (sat_disk[i-1] and outside_disk[i] and sat_disk[i+1]):
+                if (outside_disk[i] and sat_disk[i+1]):
                     acc = dat[time==t2].copy()
                     dsrg_accreted = pd.concat([dsrg_accreted, acc])
                  
@@ -585,7 +585,7 @@ def calc_dsrg_heated(sim, haloid, save=True, verbose=True):
         dat = data[data.pid==pid]
 
         sat_disk = np.array(dat.sat_disk, dtype=bool)
-        in_sat = np.array(data.in_sat, dtype=bool)
+        in_sat = np.array(dat.in_sat, dtype=bool)
         outside_disk = ~sat_disk
         
         time = np.array(dat.time, dtype=float)

@@ -8,7 +8,7 @@ import numpy as np
 import pickle
 from base import *
 
-from analysis import *
+# from analysis import *
 
 
 #####################################################################
@@ -16,42 +16,162 @@ from analysis import *
 #####################################################################
 
 
-def calc_accreted(sim, haloid, save=True, verbose=True):
-    import tqdm
-    data = read_tracked_particles(sim, haloid, verbose=verbose)
 
-    if verbose: print(f'Now computing discharged particles for {sim}-{haloid}...')
-    dsrg_accreted = pd.DataFrame() # gas accreted following a discharge event.
+def get_keys():
+    path1 = '/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/ejected_particles.hdf5'
+    with pd.HDFStore(path1) as hdf:
+        keys = [k[1:] for k in hdf.keys()]
+    print(*keys)
+    return keys
 
+
+
+def read_tracked_particles(sim, haloid, verbose=False):
     
-    pids = np.unique(data.pid)
-    for pid in tqdm.tqdm(pids):
-        dat = data[data.pid==pid]
+    if verbose: print(f'Loading tracked particles for {sim}-{haloid}...')
+    
+    key = f'{sim}_{str(int(haloid))}'
 
-        sat_disk = np.array(dat.sat_disk, dtype=bool)
+    # import the tracked particles dataset
+    path1 = '/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/tracked_particles_v2.hdf5'
+    data = pd.read_hdf(path1, key=key)
+    
+    time = np.unique(data.time)
+    dt = time[1:]-time[:-1]
+    dt = np.append(dt[0], dt)
+    dt = dt[np.unique(data.time, return_inverse=True)[1]]
+    data['dt'] = dt
+    
+    
+    if verbose: print('Successfully loaded')
+    
+    r_gal = np.array([])
+    for t in np.unique(data.time):
+        d = data[data.time==t]
+        r_gas = np.mean(d.sat_r_gas)
+        r_half = np.mean(d.sat_r_half)
+        rg = np.max([r_gas,r_half])
+
+        if np.isnan(rg):
+            rg = r_gal_prev
+
+        if verbose: print(f't = {t:1f} Gyr, satellite R_gal = {rg:.2f} kpc')
+        r_gal = np.append(r_gal,[rg]*len(d))
+
+        r_gal_prev = rg
+
+    data['r_gal'] = r_gal
+    
+    r_gal_prev = 0
+    r_gal = np.array([])
+    for t in np.unique(data.time):
+        d = data[data.time==t]
+        r_gas = np.mean(d.host_r_gas)
+        r_half = np.mean(d.host_r_half)
+        rg = np.max([r_gas,r_half])
+
+        if np.isnan(rg):
+            rg = r_gal_prev
+
+        if verbose: print(f't = {t:1f} Gyr, host R_gal = {rg:.2f} kpc')
+        r_gal = np.append(r_gal,[rg]*len(d))
+
+        r_gal_prev = rg
+
+    data['host_r_gal'] = r_gal
+    
+    thermo_disk = (np.array(data.temp) < 1.2e4) & (np.array(data.rho) > 0.1)
+    
+    in_sat = np.array(data.in_sat)
+    other_sat = np.array(data.in_other_sat)
+    in_host = np.array(data.in_host) & ~in_sat & ~other_sat
+    
+    sat_disk = in_sat & thermo_disk
+    sat_halo = in_sat & ~thermo_disk
+    
+    host_disk = in_host & thermo_disk
+    host_halo = in_host & ~thermo_disk
+    
+    IGM = np.array(data.in_IGM)
+    
+    # basic location classifications.
+    data['sat_disk'] = sat_disk
+    data['sat_halo'] = sat_halo
+    data['host_disk'] = host_disk
+    data['host_halo'] = host_halo
+    data['other_sat'] = other_sat
+    data['IGM'] = IGM
+
+    return data
+
+
+
+def read_discharged(sim, haloid, verbose=False):
+    discharged = pd.DataFrame()
+    
+    key = f'{sim}_{str(int(haloid))}'
+    
+    path = '/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/discharged_particles.hdf5'
+    discharged = pd.read_hdf(path, key=key)
+    
+    path = '/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/dsrg_accreted_particles.hdf5'
+    accreted = pd.read_hdf(path, key=key)
+    
+    return discharged, accreted
+
+
+
+def calc_accreted(sim, haloid, save=True, verbose=True):
+    ''' 
+    Computing accreted gas particles using method 1: a particle is recorded as accreted 
+    if it was present in the 'discharged' dataset prior to the accretion event.
+    '''
+    
+    import tqdm
+    
+    tracked = read_tracked_particles(sim, haloid, verbose=verbose)# all gas at all recorded times.
+    discharged = read_discharged(sim, haloid, verbose=verbose) # all gas ejected from the disk (can include repeat events).
+    
+#     if verbose: print(f'Now computing discharged particles for {sim}-{haloid}...')
+    dsrg_accreted = pd.DataFrame() # gas accreted following a discharge event.
+    
+    
+    # picking out all unique particles that were tracked in a the dwarf galaxy.
+    pids = np.unique(tracked.pid) 
+    dsrg_pids = np.unique(discharged.pid)
+    
+    
+    
+    
+    for pid in tqdm.tqdm(dsrg_pids): # iterating over each unique pid.
+        data = tracked[tracked.pid==pid] # picking out all instances of the particular particle (each has same # of timesteps).
+        dsrg_data = discharged[discharged.pid==pid]
+    
+        
+        sat_disk = np.array(data.sat_disk, dtype=bool)
         in_sat = np.array(data.in_sat, dtype=bool)
         outside_disk = ~sat_disk
         
-        time = np.array(dat.time, dtype=float)
-
-        for i,t2 in enumerate(time[1:]):
-                i += 1
+        time = np.array(data.time, dtype=float)
+        
                 
-                # stopping condition to avoid enumeration overflow:
-                if i == len(time)-1:
-                    break 
+            
+         
+            
+            
+        for i,t2 in enumerate(time[1:]): # iterating over all recorded timesteps for the particle.
+                i += 1
                     
-#                 if sat_disk[i-1] and outside_disk[i] and sat_disk[i+1]:
-#                     in_ = dat[time==time[i-1]].copy()
-#                     out = dat[time==t2].copy()
-#                     predischarged = pd.concat([predischarged, in_])
-#                     discharged = pd.concat([discharged, out])
-                    
-                if (sat_disk[i-1] and outside_disk[i] and sat_disk[i+1]):
-                    out = dat[time==t2].copy()
-                    dsrg_accreted = pd.concat([dsrg_accreted, out])
+                if ( and sat_disk[i]):
+                    _in_ = data[time==t2].copy()
+                    dsrg_accreted = pd.concat([dsrg_accreted, _in_])
                  
 
+                
+                
+                
+                
+                
     # apply the calc_angles function along the rows of discharged particles.
    
     
