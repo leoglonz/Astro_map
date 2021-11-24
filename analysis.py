@@ -532,12 +532,12 @@ def calc_discharged(sim, haloid, save=True, verbose=True):
                     predischarged = pd.concat([predischarged, in_])
                     discharged = pd.concat([discharged, out])
 
-                # stopping condition to avoid enumeration overflow for accreted calc:
-                if i == len(time)-1:
-                    break
+#                 # stopping condition to avoid enumeration overflow for accreted calc:
+#                 if i == len(time)-1:
+#                     break
                     
                 # specifically picking out that gas accreted after one time step.
-                if (outside_disk[i] and sat_disk[i+1]):
+                if (outside_disk[i-1] and sat_disk[i]):
                     acc = dat[time==t2].copy()
                     dsrg_accreted = pd.concat([dsrg_accreted, acc])
                  
