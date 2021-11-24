@@ -624,7 +624,7 @@ def calc_dsrg_heated(sim, haloid, save=True, verbose=True):
         
     
     
-def read_discharged():
+def read_all_discharged():
     predischarged = pd.DataFrame()
     discharged = pd.DataFrame()
     dsrg_accreted = pd.DataFrame()

@@ -121,84 +121,92 @@ def read_discharged(sim, haloid, verbose=False):
 
 
 
-def calc_accreted(sim, haloid, save=True, verbose=True):
+def calc_adv_accreted(sim, haloid, save=True, verbose=True):
     ''' 
     Computing accreted gas particles using method 1: a particle is recorded as accreted 
     if it was present in the 'discharged' dataset prior to the accretion event.
     '''
     
     import tqdm
-    
-    tracked = read_tracked_particles(sim, haloid, verbose=verbose)# all gas at all recorded times.
-    discharged = read_discharged(sim, haloid, verbose=verbose) # all gas ejected from the disk (can include repeat events).
-    
-#     if verbose: print(f'Now computing discharged particles for {sim}-{haloid}...')
-    dsrg_accreted = pd.DataFrame() # gas accreted following a discharge event.
-    
-    
-    # picking out all unique particles that were tracked in a the dwarf galaxy.
-    pids = np.unique(tracked.pid) 
-    dsrg_pids = np.unique(discharged.pid)
-    
-    
-    
-    
-    for pid in tqdm.tqdm(dsrg_pids): # iterating over each unique pid.
-        data = tracked[tracked.pid==pid] # picking out all instances of the particular particle (each has same # of timesteps).
-        dsrg_data = discharged[discharged.pid==pid]
-    
-        
-        sat_disk = np.array(data.sat_disk, dtype=bool)
-        in_sat = np.array(data.in_sat, dtype=bool)
-        outside_disk = ~sat_disk
-        
-        time = np.array(data.time, dtype=float)
-        
-                
-            
-         
-            
-            
-        for i,t2 in enumerate(time[1:]): # iterating over all recorded timesteps for the particle.
-                i += 1
-                    
-                if ( and sat_disk[i]):
-                    _in_ = data[time==t2].copy()
-                    dsrg_accreted = pd.concat([dsrg_accreted, _in_])
-                 
 
-                
-                
-                
-                
-                
-    # apply the calc_angles function along the rows of discharged particles.
-   
-    
+    discharged, accreted = read_discharged(sim, haloid, verbose=verbose)  
+
+    if verbose: print(f'Now computing adv. accreted particles for {sim}-{haloid}...')
+    adv_accreted = pd.DataFrame() # gas accreted following a discharge event.
+
+    pids = np.unique(accreted.pid)
+
+
+
+    for pid in tqdm.tqdm(pids):
+        dis = discharged[discharged.pid==pid]
+        acc = accreted[accreted.pid==pid]
+
+        dTime = np.asarray(dis.time)
+        aTime = np.asarray(acc.time)
+
+
+        # Case 1: removing initial accretion event if it does not correspond to a discharge; else no alterations.
+        # check to ensure that our discharge event actually has an accretion.
+        if (len(aTime) != 0) and (len(dTime) != 0):
+            if (aTime[0] < dTime[0]):
+                aCache = acc[1:]
+
+            else:
+                aCache = acc
+            
+
+        adv_accreted = pd.concat([adv_accreted, aCache])
+        
+        
     if save:
-        filepath = '/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/accreted_test.hdf5'
-        print(f'Saving {key} accreted particle dataset to {filepath}')
-        dsrg_accreted.to_hdf(filepath, key=key)
+        key = f'{sim}_{str(int(haloid))}'
+        filepath = '/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/adv_accreted.hdf5'
+        print(f'Saving {key} adv. accreted particle dataset to {filepath}')
+        adv_accreted.to_hdf(filepath, key=key)
         
         
-    print(f'> Returning (dsrg_accreted) datasets <')
+        
+    print(f'> Returning (adv. accreted) datasets <')
 
-    return dsrg_accreted
+    return adv_accreted
+            
+    
+    
+def read_accreted():
+    adv_accreted = pd.DataFrame()
+
+    keys = get_keys()
+
+    for i,key in enumerate(keys):
+        i += 1
+        sim = key[:4]
+        haloid = int(key[5:])
+        adv_accreted1 = pd.read_hdf('/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/adv_accreted.hdf5',\
+             key=key)
+        adv_accreted1['key'] = key
+        adv_accreted = pd.concat([adv_accreted, adv_accreted1])
 
 
+    print(f'> Returning (adv. accreted) for all available satellites <')
+    return adv_accreted
 
-
-
-
-keys = ['h148_13','h148_28','h148_37','h148_45','h148_68','h148_80','h148_283',
-        'h148_278','h148_329','h229_20','h229_22','h229_23','h229_27','h229_55',
-        'h242_24','h242_41','h242_80','h329_33','h329_137']
-
-print('Compiling sim gas into sets (accreted) for the following keys:', keys)
-
-for key in keys:
-    sim = str(key[:4])
-    haloid = int(key[5:])
-    # note that heated is automatically concatenated without double counting, irrespective 
-    # of how many times this code is run.
-    accreted = calc_accreted(sim, haloid, save=True, verbose=False)
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+ 
