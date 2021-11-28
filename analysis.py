@@ -10,8 +10,15 @@ import pickle
 from base import *
 
 
+##### Change directory nesting here so that your data can be found in your root folder! ####
+# rootPath = '/home/lonzaric/astro_research/'
+rootPath = '~/Desktop/'
+############################################################################################
+
+
+
 def get_keys():
-    path1 = '/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/ejected_particles.hdf5'
+    path1 = f'{rootPath}Stellar_Feedback_Code/SNeData/ejected_particles.hdf5'
     with pd.HDFStore(path1) as hdf:
         keys = [k[1:] for k in hdf.keys()]
     print(*keys)
@@ -28,7 +35,7 @@ def get_keys():
 #     key = f'{sim}_{str(int(haloid))}'
 
 #     # import the tracked particles dataset
-#     path1 = '/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/tracked_particles.hdf5'
+#     path1 = f'{rootPath}Stellar_Feedback_Code/SNeData/tracked_particles.hdf5'
 #     data = pd.read_hdf(path1, key=key)
     
 #     time = np.unique(data.time)
@@ -131,7 +138,7 @@ def read_tracked_particles(sim, haloid, verbose=False):
     key = f'{sim}_{str(int(haloid))}'
 
     # import the tracked particles dataset
-    path1 = '/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/tracked_particles_v2.hdf5'
+    path1 = f'{rootPath}Stellar_Feedback_Code/SNeData/tracked_particles_v2.hdf5'
     data = pd.read_hdf(path1, key=key)
     
     time = np.unique(data.time)
@@ -314,19 +321,19 @@ def calc_ejected_expelled(sim, haloid, save=True, verbose=True):
     
     if save:
         key = f'{sim}_{str(int(haloid))}'
-        filepath = '/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/ejected_particles.hdf5'
+        filepath = f'{rootPath}Stellar_Feedback_Code/SNeData/ejected_particles.hdf5'
         print(f'Saving {key} ejected particle dataset to {filepath}')
         ejected.to_hdf(filepath, key=key)
         
-        filepath = '/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/cooled_particles.hdf5'
+        filepath = f'{rootPath}Stellar_Feedback_Code/SNeData/cooled_particles.hdf5'
         print(f'Saving {key} cooled particle dataset to {filepath}')
         cooled.to_hdf(filepath, key=key)
 
-        filepath = '/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/expelled_particles.hdf5'
+        filepath = f'{rootPath}Stellar_Feedback_Code/SNeData/expelled_particles.hdf5'
         print(f'Saving {key} expelled particle dataset to {filepath}')
         expelled.to_hdf(filepath, key=key)
                 
-        filepath = '/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/accreted_particles.hdf5'
+        filepath = f'{rootPath}Stellar_Feedback_Code/SNeData/accreted_particles.hdf5'
         print(f'Saving {key} accreted particle dataset to {filepath}')
         accreted.to_hdf(filepath, key=key)
         
@@ -338,10 +345,10 @@ def calc_ejected_expelled(sim, haloid, save=True, verbose=True):
 
 def read_ejected_expelled(sim, haloid):
     key = f'{sim}_{str(int(haloid))}'
-    ejected = pd.read_hdf('/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/ejected_particles.hdf5', key=key)
-    cooled = pd.read_hdf('/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/cooled_particles.hdf5', key=key)
-    expelled = pd.read_hdf('/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/expelled_particles.hdf5', key=key)
-    accreted = pd.read_hdf('/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/accreted_particles.hdf5', key=key)
+    ejected = pd.read_hdf(f'{rootPath}Stellar_Feedback_Code/SNeData/ejected_particles.hdf5', key=key)
+    cooled = pd.read_hdf(f'{rootPath}Stellar_Feedback_Code/SNeData/cooled_particles.hdf5', key=key)
+    expelled = pd.read_hdf(f'{rootPath}Stellar_Feedback_Code/SNeData/expelled_particles.hdf5', key=key)
+    accreted = pd.read_hdf(f'{rootPath}Stellar_Feedback_Code/SNeData/accreted_particles.hdf5', key=key)
     print(f'Returning (ejected, cooled, expelled, accreted) for {sim}-{haloid}...')
     return ejected, cooled, expelled, accreted
         
@@ -355,16 +362,16 @@ def read_all_ejected_expelled():
     for key in keys:
         if key in ['h148_3','h148_28','h242_12']: continue;
             
-        ejected1 = pd.read_hdf('/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/ejected_particles.hdf5', key=key)
+        ejected1 = pd.read_hdf(f'{rootPath}Stellar_Feedback_Code/SNeData/ejected_particles.hdf5', key=key)
         ejected1['key'] = key
         ejected = pd.concat([ejected, ejected1])
-        cooled1 = pd.read_hdf('/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/cooled_particles.hdf5', key=key)
+        cooled1 = pd.read_hdf(f'{rootPath}Stellar_Feedback_Code/SNeData/cooled_particles.hdf5', key=key)
         cooled1['key'] = key
         cooled = pd.concat([cooled, cooled1])
-        expelled1 = pd.read_hdf('/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/expelled_particles.hdf5', key=key)
+        expelled1 = pd.read_hdf(f'{rootPath}Stellar_Feedback_Code/SNeData/expelled_particles.hdf5', key=key)
         expelled1['key'] = key
         expelled = pd.concat([expelled, expelled1])
-        accreted1 = pd.read_hdf('/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/accreted_particles.hdf5', key=key)
+        accreted1 = pd.read_hdf(f'{rootPath}Stellar_Feedback_Code/SNeData/accreted_particles.hdf5', key=key)
         accreted1['key'] = key
         accreted = pd.concat([accreted, accreted1])
 
@@ -380,7 +387,7 @@ def read_ram_pressure(sim, haloid):
     '''
     
     # loading ram pressure data for specified simulation and haloid.
-    path = '/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/ram_pressure.hdf5'
+    path = f'{rootPath}Stellar_Feedback_Code/SNeData/ram_pressure.hdf5'
     key = f'{sim}_{haloid}'
     data = pd.read_hdf(path, key=key)
     
@@ -551,15 +558,15 @@ def calc_discharged(sim, haloid, save=True, verbose=True):
     
     if save:
         key = f'{sim}_{str(int(haloid))}'
-        filepath = '/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/predischarged_particles.hdf5'
+        filepath = f'{rootPath}Stellar_Feedback_Code/SNeData/predischarged_particles.hdf5'
         print(f'Saving {key} predischarged particle dataset to {filepath}')
         predischarged.to_hdf(filepath, key=key)
  
-        filepath = '/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/discharged_particles.hdf5'
+        filepath = f'{rootPath}Stellar_Feedback_Code/SNeData/discharged_particles.hdf5'
         print(f'Saving {key} discharged particle dataset to {filepath}')
         discharged.to_hdf(filepath, key=key)
         
-        filepath = '/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/dsrg_accreted_particles.hdf5'
+        filepath = f'{rootPath}Stellar_Feedback_Code/SNeData/dsrg_accreted_particles.hdf5'
         print(f'Saving {key} accreted particle dataset to {filepath}')
         dsrg_accreted.to_hdf(filepath, key=key)
         
@@ -609,11 +616,11 @@ def calc_dsrg_heated(sim, haloid, save=True, verbose=True):
     
     if save:
         key = f'{sim}_{str(int(haloid))}'
-        filepath = '/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/preheated_particles.hdf5'
+        filepath = f'{rootPath}Stellar_Feedback_Code/SNeData/preheated_particles.hdf5'
         print(f'Saving {key} preheated particle dataset to {filepath}')
         preheated.to_hdf(filepath, key=key)
         
-        filepath = '/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/heated_particles.hdf5'
+        filepath = f'{rootPath}Stellar_Feedback_Code/SNeData/heated_particles.hdf5'
         print(f'Saving {key} heated particle dataset to {filepath}')
         heated.to_hdf(filepath, key=key)
         
@@ -637,25 +644,25 @@ def read_all_discharged():
         i += 1
         sim = key[:4]
         haloid = int(key[5:])
-        predischarged1 = pd.read_hdf('/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/predischarged_particles.hdf5',\
+        predischarged1 = pd.read_hdf(f'{rootPath}Stellar_Feedback_Code/SNeData/predischarged_particles.hdf5',\
              key=key)
         predischarged1['key'] = key
         predischarged = pd.concat([predischarged, predischarged1])
         
-        discharged1 = pd.read_hdf('/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/discharged_particles.hdf5', key=key)
+        discharged1 = pd.read_hdf(f'{rootPath}Stellar_Feedback_Code/SNeData/discharged_particles.hdf5', key=key)
         discharged1['key'] = key
         discharged = pd.concat([discharged, discharged1])
         
-        dsrg_accreted1 = pd.read_hdf('/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/dsrg_accreted_particles.hdf5',\
+        dsrg_accreted1 = pd.read_hdf(f'{rootPath}Stellar_Feedback_Code/SNeData/dsrg_accreted_particles.hdf5',\
             key=key)
         dsrg_accreted1['key'] = key
         dsrg_accreted = pd.concat([dsrg_accreted, dsrg_accreted1])
   
-        preheated1 = pd.read_hdf('/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/preheated_particles.hdf5', key=key)
+        preheated1 = pd.read_hdf(f'{rootPath}Stellar_Feedback_Code/SNeData/preheated_particles.hdf5', key=key)
         preheated1['key'] = key
         preheated = pd.concat([preheated, preheated1])
         
-        heated1 = pd.read_hdf('/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/heated_particles.hdf5', key=key)
+        heated1 = pd.read_hdf(f'{rootPath}Stellar_Feedback_Code/SNeData/heated_particles.hdf5', key=key)
         heated1['key'] = key
         heated = pd.concat([heated, heated1])
        
