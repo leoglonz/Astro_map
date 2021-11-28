@@ -1,7 +1,20 @@
-from base import *
+# Contains the functions used to complete a general survey of viable satellite galaxies, wherein all gas particles are collected 
+# into a dataframe along with an array of their intrinsic properties, for later analysis.
+#
+# ____________________________________________________________________________________________________
+# Code credit to Hollis Akins 2021;
+# Github permalink: https://github.com/hollisakins/Justice_League_Code/blob/
+#                    e049137edcfdc9838ebb3cf0fcaa4ee46e977cec/Analysis/RamPressure/particletracking.py
+# ____________________________________________________________________________________________________
+# Last revised: 28 Nov. 2021
+
 import sys
 import tqdm
 import os
+
+from base import *
+
+
 
 hubble =  0.6776942783267969
 

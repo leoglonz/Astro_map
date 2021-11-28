@@ -1,9 +1,15 @@
 # Simple execution file to compute the virial mass attributes for each gas particle's satellite galaxy; this value is then
 # added to the output dataset as the callable key 'sat_Mvir'.
+#
+# __________________________
+# Last revised: 28 Nov. 2021
 
-from analysis import *
 import pandas as pd
 import tqdm
+
+from compiler import *
+
+
 
 keys = ['h148_13','h148_28','h148_37','h148_45','h148_68','h148_80','h148_283',
         'h148_278','h148_329','h229_20','h229_22','h229_23','h229_27','h229_55',

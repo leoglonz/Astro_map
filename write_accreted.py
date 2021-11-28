@@ -1,7 +1,11 @@
-########
 # runs advanced calculation of accretion to further refine selection to those particles accreted following a discharge event.
-########
+#
+# __________________________
+# Last revised: 28 Nov. 2021
+
 from compiler import *
+
+
 
 keys = ['h148_13','h148_28','h148_37','h148_45','h148_68','h148_80','h148_283',
         'h148_278','h148_329','h229_20','h229_22','h229_23','h229_27','h229_55',

@@ -1,10 +1,21 @@
-# import basic packages
+# This file contains a few basic analytical functions and other definitions used frequently in data preperation throughout 
+# the project.
+#
+# ____________________________________________________________________________________________
+# Code credit to Hollis Akins 2021;
+# Github permalink: https://github.com/hollisakins/Justice_League_Code/blob/
+#                    e049137edcfdc9838ebb3cf0fcaa4ee46e977cec/Analysis/RamPressure/base.py
+# ____________________________________________________________________________________________
+# Last revised: 28 Nov. 2021
+
 import pynbody
 import pandas as pd
 import numpy as np
 import pickle
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+
+
 
 # define some constants, which should be accessible by any code that imports base.py or analysis.py
 hubble =  0.6776942783267969 # hubble constant

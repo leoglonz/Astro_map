@@ -3,6 +3,14 @@
 # and potential energies of particles, classify particles as disk vs. halo, identify ejected or expulsed particles, and more. 
 # The reason these functions are written here is so that we can ensure that we are using the same data processing procedures  
 # throughout the analysis and not have to repeat this code for each analysis component. 
+#
+# ____________________________________________________________________________________________
+# Code credit to Hollis Akins 2021;
+# Github permalink: https://github.com/hollisakins/Justice_League_Code/blob/ 
+#                    e049137edcfdc9838ebb3cf0fcaa4ee46e977cec/Analysis/RamPressure/analysis.py
+# ____________________________________________________________________________________________
+# Last revised: 28 Nov. 2021
+
 import pynbody
 import pandas as pd
 import numpy as np
@@ -10,6 +18,7 @@ import pickle
 
 from base import *
 from compiler import *
+
 
 
 ##### Change directory nesting here so that your data can be found in your root folder! ####
@@ -20,11 +29,41 @@ rootPath = '/home/lonzaric/astro_research/'
 
 
 def get_keys():
-    path1 = f'{rootPath}Stellar_Feedback_Code/SNeData/ejected_particles.hdf5'
+    '''
+    -> Simply retrieving satellite identifiers -- or 'keys' -- for all satellites used in to compile gas particle datasets.
+    '''
+    #--------------------------------#
+    
+    path1 = f'{rootPath}Stellar_Feedback_Code/SNeData/discharged_particles.hdf5'
     with pd.HDFStore(path1) as hdf:
         keys = [k[1:] for k in hdf.keys()]
     print(*keys)
     return keys
+
+
+
+def calc_angles(d):
+    '''
+    -> Calculates exit angles (angle made between velocity vec of gas particle and velocity vec of satellite) for gas particle.
+    '''
+    #--------------------------------#
+    
+    # get gas particle velocity
+    v = np.array([d.vx,d.vy,d.vz])
+
+    # get velocity of CGM wind (host velocity relative to satellite)
+    v_sat = np.array([d.sat_vx,d.sat_vy,d.sat_vz])
+    v_host = np.array([d.host_vx,d.host_vy,d.host_vz])
+    v_rel = v_host - v_sat # we want the velocity of the host in the satellite rest frame
+
+    # take the dot product and get the angle, in degrees
+    v_hat = v / np.linalg.norm(v)
+    v_rel_hat = v_rel / np.linalg.norm(v_rel)
+    angle = np.arccos(np.dot(v_hat,v_rel_hat)) * 180/np.pi
+
+    d['angle'] = angle
+        
+    return d
 
 
 
@@ -44,264 +83,23 @@ def calc_angles_tidal(d):
 
     d['angle_tidal'] = angle
         
-    return d
+    return 
 
 
 
-def calc_ejected_expelled(sim, haloid, save=True, verbose=True):
-    import tqdm
-    data = read_tracked_particles(sim, haloid, verbose=verbose)
-
-    if verbose: print(f'Now computing ejected/expelled particles for {sim}-{haloid}...')
-    ejected = pd.DataFrame()
-    cooled = pd.DataFrame()
-    expelled = pd.DataFrame()
-    accreted = pd.DataFrame()
-    
-    pids = np.unique(data.pid)
-    for pid in tqdm.tqdm(pids):
-        dat = data[data.pid==pid]
-
-        sat_disk = np.array(dat.sat_disk, dtype=bool)
-        sat_halo = np.array(dat.sat_halo, dtype=bool)
-        in_sat = np.array(dat.in_sat, dtype=bool)
-        outside_sat = ~in_sat
-
-        host_halo = np.array(dat.host_halo, dtype=bool)
-        host_disk = np.array(dat.host_disk, dtype=bool)
-        IGM = np.array(dat.IGM, dtype=bool)
-        other_sat = np.array(dat.other_sat, dtype=bool)
-        
-        time = np.array(dat.time,dtype=float)
-
-
-
-        for i,t2 in enumerate(time[1:]):
-                i += 2
-                if sat_disk[i-1] and sat_halo[i]:
-                    out = dat[time==t2].copy()
-                    ejected = pd.concat([ejected, out])
-                    
-                if sat_halo[i-1] and sat_disk[i]:
-                    out = dat[time==t2].copy()
-                    cooled = pd.concat([cooled, out])
-                    
-                if in_sat[i-1] and outside_sat[i]:
-                    out = dat[time==t2].copy()
-                    if sat_halo[i-1]:
-                        out['state1'] = 'sat_halo'
-                    elif sat_disk[i-1]:
-                        out['state1'] = 'sat_disk'
-                        
-                    expelled = pd.concat([expelled, out])
-                    
-                if outside_sat[i-1] and in_sat[i]:
-                    out = dat[time==t2].copy()
-                    if sat_halo[i]:
-                        out['state2'] = 'sat_halo'
-                    elif sat_disk[i]:
-                        out['state2'] = 'sat_disk'
-                        
-                    accreted = pd.concat([accreted, out])
-                  
-
-    # apply the calc_angles function along the rows of ejected and expelled
-    print('Calculating ejection angles')
-    ejected = ejected.apply(calc_angles, axis=1)
-    print('Calculating expulsion angles')
-    expelled = expelled.apply(calc_angles, axis=1)
-    
-#     # apply the calc_angles function along the rows of ejected and expelled
-#     print('Calculating ejection angles (for tidal force)')
-#     ejected = ejected.apply(calc_angles_tidal, axis=1)
-#     print('Calculating expulsion angles (for tidal force)')
-#     expelled = expelled.apply(calc_angles_tidal, axis=1)
-    
-    if save:
-        key = f'{sim}_{str(int(haloid))}'
-        filepath = f'{rootPath}Stellar_Feedback_Code/SNeData/ejected_particles.hdf5'
-        print(f'Saving {key} ejected particle dataset to {filepath}')
-        ejected.to_hdf(filepath, key=key)
-        
-        filepath = f'{rootPath}Stellar_Feedback_Code/SNeData/cooled_particles.hdf5'
-        print(f'Saving {key} cooled particle dataset to {filepath}')
-        cooled.to_hdf(filepath, key=key)
-
-        filepath = f'{rootPath}Stellar_Feedback_Code/SNeData/expelled_particles.hdf5'
-        print(f'Saving {key} expelled particle dataset to {filepath}')
-        expelled.to_hdf(filepath, key=key)
-                
-        filepath = f'{rootPath}Stellar_Feedback_Code/SNeData/accreted_particles.hdf5'
-        print(f'Saving {key} accreted particle dataset to {filepath}')
-        accreted.to_hdf(filepath, key=key)
-        
-        
-    print(f'> Returning (ejected, cooled, expelled, accreted) datasets <')
-
-    return ejected, cooled, expelled, accreted
-        
-
-    
-def read_ejected_expelled(sim, haloid):
-    key = f'{sim}_{str(int(haloid))}'
-    ejected = pd.read_hdf(f'{rootPath}Stellar_Feedback_Code/SNeData/ejected_particles.hdf5', key=key)
-    cooled = pd.read_hdf(f'{rootPath}Stellar_Feedback_Code/SNeData/cooled_particles.hdf5', key=key)
-    expelled = pd.read_hdf(f'{rootPath}Stellar_Feedback_Code/SNeData/expelled_particles.hdf5', key=key)
-    accreted = pd.read_hdf(f'{rootPath}Stellar_Feedback_Code/SNeData/accreted_particles.hdf5', key=key)
-    print(f'Returning (ejected, cooled, expelled, accreted) for {sim}-{haloid}...')
-    return ejected, cooled, expelled, accreted
-        
-    
-    
-def read_all_ejected_expelled():
-    ejected = pd.DataFrame()
-    cooled = pd.DataFrame()
-    expelled = pd.DataFrame()
-    accreted = pd.DataFrame()
-    keys = get_keys()
-    for key in keys:
-        if key in ['h148_3','h148_28','h242_12']: continue;
-            
-        ejected1 = pd.read_hdf(f'{rootPath}Stellar_Feedback_Code/SNeData/ejected_particles.hdf5', key=key)
-        ejected1['key'] = key
-        ejected = pd.concat([ejected, ejected1])
-        cooled1 = pd.read_hdf(f'{rootPath}Stellar_Feedback_Code/SNeData/cooled_particles.hdf5', key=key)
-        cooled1['key'] = key
-        cooled = pd.concat([cooled, cooled1])
-        expelled1 = pd.read_hdf(f'{rootPath}Stellar_Feedback_Code/SNeData/expelled_particles.hdf5', key=key)
-        expelled1['key'] = key
-        expelled = pd.concat([expelled, expelled1])
-        accreted1 = pd.read_hdf(f'{rootPath}Stellar_Feedback_Code/SNeData/accreted_particles.hdf5', key=key)
-        accreted1['key'] = key
-        accreted = pd.concat([accreted, accreted1])
-
-    print(f'> Returning (ejected, cooled, expelled, accreted) for all available satellites <')
-    return ejected, cooled, expelled, accreted
-
-
-
-def read_ram_pressure(sim, haloid):
+def vec_to_xform(vec):
     '''
-    Function to read in the ram pressure dataset, merge it with particle and flow information, and return a dataset containing 
-    rates of gas flow in addition to ram pressure information.
+    -> Aligns Pynbody coordinate system to a specified vector 'vec'.
     '''
+    #--------------------------------#
     
-    # loading ram pressure data for specified simulation and haloid.
-    path = f'{rootPath}Stellar_Feedback_Code/SNeData/ram_pressure.hdf5'
-    key = f'{sim}_{haloid}'
-    data = pd.read_hdf(path, key=key)
-    
-    # converting data to numpy arrays (i.e. remove pynbody unit information) and calculating ratio
-    data['Pram_adv'] = np.array(data.Pram_adv,dtype=float)
-    data['Pram'] = np.array(data.Pram,dtype=float)
-    data['Prest'] = np.array(data.Prest,dtype=float)
-    data['ratio'] = data.Pram_adv / data.Prest
-    dt = np.array(data.t)[1:] - np.array(data.t)[:-1]
-    dt = np.append(dt[0],dt)
-    data['dt'] = dt
-    
-    # loading timescale information to add quenching time and quenching timescale (tau).
-    timescales = read_timescales()
-    ts = timescales[(timescales.sim==sim)&(timescales.haloid==haloid)]
-    data['tau'] = ts.tinfall.iloc[0] - ts.tquench.iloc[0]    
-    data['tquench'] = age - ts.tquench.iloc[0]   
+    vec_in = np.asarray(vec)
+    vec_in = vec_in / np.sum(vec_in ** 2).sum() ** 0.5
+    vec_p1 = np.cross([1, 0, 0], vec_in)
+    vec_p1 = vec_p1 / np.sum(vec_p1 ** 2).sum() ** 0.5
+    vec_p2 = np.cross(vec_in, vec_p1)
+    matr = np.concatenate((vec_p2, vec_in, vec_p1)).reshape((3, 3))
+    return matr
 
-    # loading discharged particle data.
-    predischarged, discharged, accreted, preheated, heated = read_discharged()
 
-    # Mgas_div is the gas mass we divide by when plotting rates. this is the gas mass 1 snapshot past.
-    Mgas_div = np.array(data.M_gas,dtype=float)
-    Mgas_div = np.append(Mgas_div[0], Mgas_div[:-1])
-    data['Mgas_div'] = Mgas_div
-    
-    # load in particle data.
-    particles = read_tracked_particles(sim,haloid)
-    # m_disk = 0 if particle is not in disk, = particle mass if it is. This allows us to compute total mass in the disk.
-    particles['m_disk'] = np.array(particles.mass,dtype=float)*np.array(particles.sat_disk,dtype=int)
-    particles['m_SNeaff'] = np.array(particles.mass,dtype=float)*np.array(particles.coolontime > particles.time, dtype=int)
-    
-    # group particles data by unique times and sum the mass of particles that are SNe affected, to get total mass.
-    data = pd.merge_asof(data, particles.groupby(['time']).m_SNeaff.sum().reset_index(), left_on='t', right_on='time')
-    data = data.rename(columns={'m_SNeaff':'M_SNeaff'})
-    
-    # group particle data by unique times and sum the mass of particles that are in the disk, to get total mass.
-    data = pd.merge_asof(data, particles.groupby(['time']).m_disk.sum().reset_index(), left_on='t', right_on='time')
-    data = data.rename(columns={'m_disk':'M_disk'})
-    
-    # analagous to Mgas_div above.
-    Mdisk_div = np.array(data.M_disk,dtype=float)
-    Mdisk_div = np.append(Mdisk_div[0], Mdisk_div[:-1])
-    data['Mdisk_div'] = Mdisk_div
-    
-    # fetching rates of predischarged gas.
-    data = pd.merge_asof(data, predischarged.groupby(['time']).mass.sum().reset_index(), left_on='t', right_on='time')
-    data = data.rename(columns={'mass':'M_predischarged'}) # mass ejected in that snapshot
-    data['Mdot_predischarged'] = data.M_predischarged / data.dt # rate of mass ejection 
-    data['Mdot_predischarged_by_Mgas'] = data.Mdot_predischarged / Mgas_div # rate of ejection divided by M_gas
-    data['Mdot_predischarged_by_Mdisk'] = data.Mdot_predischarged / Mdisk_div # rate of ejection divided by M_disk
 
-    # fetching rates of all discharged gas.
-    data = pd.merge_asof(data, discharged.groupby(['time']).mass.sum().reset_index(), left_on='t', right_on='time')
-    data = data.rename(columns={'mass':'M_discharged'}) 
-    data['Mdot_discharged'] = data.M_discharged / data.dt 
-    data['Mdot_discharged_by_Mgas'] = data.Mdot_discharged / Mgas_div 
-    data['Mdot_discharged_by_Mdisk'] = data.Mdot_discharged / Mdisk_div 
-
-    # next, for accreted gas.
-    data = pd.merge_asof(data, acccreted.groupby(['time']).mass.sum().reset_index(), left_on='t', right_on='time')
-    data = data.rename(columns={'mass':'M_acccreted'})
-    data['Mdot_acccreted'] = data.M_acccreted / data.dt
-    data['Mdot_acccreted_by_Mgas'] = data.Mdot_acccreted / Mgas_div
-    data['Mdot_acccreted_by_Mdisk'] = data.Mdot_acccreted / Mdisk_div
-    
-    # finally, accreted gas
-    accreted_disk = accreted[accreted.state2 == 'sat_disk']
-    
-    data = pd.merge_asof(data, accreted.groupby(['time']).mass.sum().reset_index(), left_on='t', right_on='time')
-    data = data.rename(columns={'mass':'M_accreted'})
-    data['Mdot_accreted'] = data.M_accreted / data.dt
-    data['Mdot_accreted_by_Mgas'] = data.Mdot_accreted / Mgas_div
-
-    data = pd.merge_asof(data, accreted_disk.groupby(['time']).mass.sum().reset_index(), left_on='t', right_on='time')
-    data = data.rename(columns={'mass':'M_accreted_disk'})
-    data['Mdot_accreted_disk'] = data.M_accreted_disk / data.dt
-    data['Mdot_accreted_disk_by_Mgas'] = data.Mdot_accreted_disk / Mgas_div
-    data['Mdot_accreted_disk_by_Mdisk'] = data.Mdot_accreted_disk / Mdisk_div
-
-    # overall rate of gas-loss
-    dM_gas = np.array(data.M_gas,dtype=float)[1:] - np.array(data.M_gas,dtype=float)[:-1]
-    dM_gas = np.append([np.nan],dM_gas)
-    data['Mdot_gas'] = dM_gas / np.array(data.dt)
-    
-    # rate of gas-loss from the disk
-    dM_disk = np.array(data.M_disk,dtype=float)[1:] - np.array(data.M_disk,dtype=float)[:-1]
-    dM_disk = np.append([np.nan],dM_disk)
-    data['Mdot_disk'] = dM_disk / np.array(data.dt)
-    
-    data['key'] = key
-    
-    # fraction of the inital gas mass still remaining in the satellite
-    M_gas_init = np.array(data.M_gas)[np.argmin(data.t)]
-    data['f_gas'] = np.array(data.M_gas)/M_gas_init
-    
-    return data
- 
-    
-    
-def read_all_ram_pressure():
-    data_all = pd.DataFrame();
-    
-    keys = ['h148_13','h148_28','h148_37','h148_45','h148_68','h148_80','h148_283',
-            'h148_278','h148_329','h229_20','h229_22','h229_23','h229_27','h229_55',
-            'h242_24','h242_41','h242_80','h329_33','h329_137']
-    
-    i = 1;
-    for key in keys:
-        print(i, end=' ')
-        i += 1
-        sim = key[:4]
-        haloid = int(key[5:])
-        data = read_ram_pressure(sim, haloid)
-        data_all = pd.concat([data_all,data])  
-    
-    return data_all

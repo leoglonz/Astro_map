@@ -1,30 +1,27 @@
-from analysis import *
-from base import *
+# Contains all functions required to calculate and compute ram pressures for the gas particle datasets.
+#
+# _______________________________________________________________________________________________
+# Ram pressure calculations credit to Hollis Akins 2021;
+# Github permalink: https://github.com/hollisakins/Justice_League_Code/blob/
+#                    e049137edcfdc9838ebb3cf0fcaa4ee46e977cec/Analysis/RamPressure/rampressure.py
+# _______________________________________________________________________________________________
+# Last revised: 28 Nov. 2021
+
 import sys
 import tqdm
 import os
 import fsps
 
-##############################################
-# Credit to Hollis Akins for base code, 2021 #
-##############################################
+from base import *
+from analysis import *
 
 
 
-# used to align pynbody coordinate system to a specified vector.
-def vec_to_xform(vec):
-    vec_in = np.asarray(vec)
-    vec_in = vec_in / np.sum(vec_in ** 2).sum() ** 0.5
-    vec_p1 = np.cross([1, 0, 0], vec_in)
-    vec_p1 = vec_p1 / np.sum(vec_p1 ** 2).sum() ** 0.5
-    vec_p2 = np.cross(vec_in, vec_p1)
-    matr = np.concatenate((vec_p2, vec_in, vec_p1)).reshape((3, 3))
-    return matr
-
-
-
-# ram pressure calculation
-def calc_ram_pressure(sim, z0haloid, filepaths, haloids, h1ids):
+def calc_ram_pressure(sim, z0haloid, filepaths, haloids, h1ids):  
+    '''
+    -> Ram pressure calculations for desired sets of gas particles..
+    '''
+    #--------------------------------#
     output_tot = pd.DataFrame()
     
     #print('Starting calculations...')
@@ -105,7 +102,7 @@ def calc_ram_pressure(sim, z0haloid, filepaths, haloids, h1ids):
 
         # advanced ram pressure calculations: calculate rho, vel from cylinder in front of satellite
         
-        # below code is adapted from pynbody.analysis.angmom.sideon()
+        # code below is adapted from pynbody.analysis.angmom.sideon()
         # transform the snapshot so that the vector 'vel' points in the +y direction
         top = s
         print(f'\t {sim}-{z0haloid}: Centering positions')
@@ -221,6 +218,141 @@ def calc_ram_pressure(sim, z0haloid, filepaths, haloids, h1ids):
         output_tot = pd.concat([output_tot, output])
 
     return output_tot
+
+
+
+def read_ram_pressure(sim, haloid):
+    '''
+    Function to read in the ram pressure dataset, merge it with particle and flow information, and return a dataset containing 
+    rates of gas flow in addition to ram pressure information.
+    '''
+    #--------------------------------#
+
+    # loading ram pressure data for specified simulation and haloid.
+    path = f'{rootPath}Stellar_Feedback_Code/SNeData/ram_pressure.hdf5'
+    key = f'{sim}_{haloid}'
+    data = pd.read_hdf(path, key=key)
+    
+    # converting data to numpy arrays (i.e. remove pynbody unit information) and calculating ratio
+    data['Pram_adv'] = np.array(data.Pram_adv,dtype=float)
+    data['Pram'] = np.array(data.Pram,dtype=float)
+    data['Prest'] = np.array(data.Prest,dtype=float)
+    data['ratio'] = data.Pram_adv / data.Prest
+    dt = np.array(data.t)[1:] - np.array(data.t)[:-1]
+    dt = np.append(dt[0],dt)
+    data['dt'] = dt
+    
+    # loading timescale information to add quenching time and quenching timescale (tau).
+    timescales = read_timescales()
+    ts = timescales[(timescales.sim==sim)&(timescales.haloid==haloid)]
+    data['tau'] = ts.tinfall.iloc[0] - ts.tquench.iloc[0]    
+    data['tquench'] = age - ts.tquench.iloc[0]   
+
+    # loading discharged particle data.
+    predischarged, discharged, accreted, preheated, heated = read_discharged()
+
+    # Mgas_div is the gas mass we divide by when plotting rates. this is the gas mass 1 snapshot past.
+    Mgas_div = np.array(data.M_gas,dtype=float)
+    Mgas_div = np.append(Mgas_div[0], Mgas_div[:-1])
+    data['Mgas_div'] = Mgas_div
+    
+    # load in particle data.
+    particles = read_tracked_particles(sim,haloid)
+    # m_disk = 0 if particle is not in disk, = particle mass if it is. This allows us to compute total mass in the disk.
+    particles['m_disk'] = np.array(particles.mass,dtype=float)*np.array(particles.sat_disk,dtype=int)
+    particles['m_SNeaff'] = np.array(particles.mass,dtype=float)*np.array(particles.coolontime > particles.time, dtype=int)
+    
+    # group particles data by unique times and sum the mass of particles that are SNe affected, to get total mass.
+    data = pd.merge_asof(data, particles.groupby(['time']).m_SNeaff.sum().reset_index(), left_on='t', right_on='time')
+    data = data.rename(columns={'m_SNeaff':'M_SNeaff'})
+    
+    # group particle data by unique times and sum the mass of particles that are in the disk, to get total mass.
+    data = pd.merge_asof(data, particles.groupby(['time']).m_disk.sum().reset_index(), left_on='t', right_on='time')
+    data = data.rename(columns={'m_disk':'M_disk'})
+    
+    # analagous to Mgas_div above.
+    Mdisk_div = np.array(data.M_disk,dtype=float)
+    Mdisk_div = np.append(Mdisk_div[0], Mdisk_div[:-1])
+    data['Mdisk_div'] = Mdisk_div
+    
+    # fetching rates of predischarged gas.
+    data = pd.merge_asof(data, predischarged.groupby(['time']).mass.sum().reset_index(), left_on='t', right_on='time')
+    data = data.rename(columns={'mass':'M_predischarged'}) # mass ejected in that snapshot
+    data['Mdot_predischarged'] = data.M_predischarged / data.dt # rate of mass ejection 
+    data['Mdot_predischarged_by_Mgas'] = data.Mdot_predischarged / Mgas_div # rate of ejection divided by M_gas
+    data['Mdot_predischarged_by_Mdisk'] = data.Mdot_predischarged / Mdisk_div # rate of ejection divided by M_disk
+
+    # fetching rates of all discharged gas.
+    data = pd.merge_asof(data, discharged.groupby(['time']).mass.sum().reset_index(), left_on='t', right_on='time')
+    data = data.rename(columns={'mass':'M_discharged'}) 
+    data['Mdot_discharged'] = data.M_discharged / data.dt 
+    data['Mdot_discharged_by_Mgas'] = data.Mdot_discharged / Mgas_div 
+    data['Mdot_discharged_by_Mdisk'] = data.Mdot_discharged / Mdisk_div 
+
+    # next, for accreted gas.
+    data = pd.merge_asof(data, acccreted.groupby(['time']).mass.sum().reset_index(), left_on='t', right_on='time')
+    data = data.rename(columns={'mass':'M_acccreted'})
+    data['Mdot_acccreted'] = data.M_acccreted / data.dt
+    data['Mdot_acccreted_by_Mgas'] = data.Mdot_acccreted / Mgas_div
+    data['Mdot_acccreted_by_Mdisk'] = data.Mdot_acccreted / Mdisk_div
+    
+    # finally, accreted gas
+    accreted_disk = accreted[accreted.state2 == 'sat_disk']
+    
+    data = pd.merge_asof(data, accreted.groupby(['time']).mass.sum().reset_index(), left_on='t', right_on='time')
+    data = data.rename(columns={'mass':'M_accreted'})
+    data['Mdot_accreted'] = data.M_accreted / data.dt
+    data['Mdot_accreted_by_Mgas'] = data.Mdot_accreted / Mgas_div
+
+    data = pd.merge_asof(data, accreted_disk.groupby(['time']).mass.sum().reset_index(), left_on='t', right_on='time')
+    data = data.rename(columns={'mass':'M_accreted_disk'})
+    data['Mdot_accreted_disk'] = data.M_accreted_disk / data.dt
+    data['Mdot_accreted_disk_by_Mgas'] = data.Mdot_accreted_disk / Mgas_div
+    data['Mdot_accreted_disk_by_Mdisk'] = data.Mdot_accreted_disk / Mdisk_div
+
+    # overall rate of gas-loss
+    dM_gas = np.array(data.M_gas,dtype=float)[1:] - np.array(data.M_gas,dtype=float)[:-1]
+    dM_gas = np.append([np.nan],dM_gas)
+    data['Mdot_gas'] = dM_gas / np.array(data.dt)
+    
+    # rate of gas-loss from the disk
+    dM_disk = np.array(data.M_disk,dtype=float)[1:] - np.array(data.M_disk,dtype=float)[:-1]
+    dM_disk = np.append([np.nan],dM_disk)
+    data['Mdot_disk'] = dM_disk / np.array(data.dt)
+    
+    data['key'] = key
+    
+    # fraction of the inital gas mass still remaining in the satellite
+    M_gas_init = np.array(data.M_gas)[np.argmin(data.t)]
+    data['f_gas'] = np.array(data.M_gas)/M_gas_init
+    
+    return data
+ 
+    
+    
+def read_all_ram_pressure():
+    '''
+    -> Returns workable dataframes containing ram pressures for specified set of gas particles.
+    '''
+    #--------------------------------#
+    
+    data_all = pd.DataFrame();
+    
+    keys = ['h148_13','h148_28','h148_37','h148_45','h148_68','h148_80','h148_283',
+            'h148_278','h148_329','h229_20','h229_22','h229_23','h229_27','h229_55',
+            'h242_24','h242_41','h242_80','h329_33','h329_137']
+    
+    i = 1;
+    for key in keys:
+        print(i, end=' ')
+        i += 1
+        sim = key[:4]
+        haloid = int(key[5:])
+        data = read_ram_pressure(sim, haloid)
+        data_all = pd.concat([data_all,data])  
+    
+    return data_all
+
 
 
 if __name__ == '__main__':
