@@ -96,7 +96,7 @@ def read_tracked_particles(sim, haloid, verbose=False):
     
     # basic location classifications.
     data['sat_disk'] = sat_disk
-    data['sat_halo'] = sat_halo
+        data['sat_halo'] = sat_halo
     data['host_disk'] = host_disk
     data['host_halo'] = host_halo
     data['other_sat'] = other_sat
