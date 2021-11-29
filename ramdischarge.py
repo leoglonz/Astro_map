@@ -10,9 +10,10 @@
 import sys
 import tqdm
 import os
-import fsps
+# import fsps
 
 from base import *
+from compiler import *
 from analysis import *
 
 
@@ -249,7 +250,7 @@ def read_ram_pressure(sim, haloid):
     data['tquench'] = age - ts.tquench.iloc[0]   
 
     # loading discharged particle data.
-    predischarged, discharged, accreted, preheated, heated = read_discharged()
+    predischarged, discharged, accreted, preheated, heated = read_all_discharged()
 
     # Mgas_div is the gas mass we divide by when plotting rates. this is the gas mass 1 snapshot past.
     Mgas_div = np.array(data.M_gas,dtype=float)
@@ -290,11 +291,11 @@ def read_ram_pressure(sim, haloid):
     data['Mdot_discharged_by_Mdisk'] = data.Mdot_discharged / Mdisk_div 
 
     # next, for accreted gas.
-    data = pd.merge_asof(data, acccreted.groupby(['time']).mass.sum().reset_index(), left_on='t', right_on='time')
-    data = data.rename(columns={'mass':'M_acccreted'})
-    data['Mdot_acccreted'] = data.M_acccreted / data.dt
-    data['Mdot_acccreted_by_Mgas'] = data.Mdot_acccreted / Mgas_div
-    data['Mdot_acccreted_by_Mdisk'] = data.Mdot_acccreted / Mdisk_div
+    data = pd.merge_asof(data, accreted.groupby(['time']).mass.sum().reset_index(), left_on='t', right_on='time')
+    data = data.rename(columns={'mass':'M_accreted'})
+    data['Mdot_accreted'] = data.M_accreted / data.dt
+    data['Mdot_accreted_by_Mgas'] = data.Mdot_accreted / Mgas_div
+    data['Mdot_accreted_by_Mdisk'] = data.Mdot_accreted / Mdisk_div
     
     # finally, accreted gas
     accreted_disk = accreted[accreted.state2 == 'sat_disk']

@@ -23,14 +23,6 @@ from analysis import *
 
 
 
-############################################################################
-##### Change directory nesting here to locate your data's root folder! #####
-rootPath = '/home/lonzaric/astro_research/'
-# rootPath = '~/Desktop/'
-############################################################################
-
-
-
 def read_tracked_particles(sim, haloid, verbose=False):
     '''
     -> Reads in gas particles tracked across a number of simulation satellites and calculates/appends desired particle 
@@ -360,10 +352,10 @@ def calc_adv_accreted(sim, haloid, save=True, verbose=True):
     
     key = f'{sim}_{str(int(haloid))}'
     
-    path = '/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/discharged_particles.hdf5'
+    path = f'{rootPath}Stellar_Feedback_Code/SNeData/discharged_particles.hdf5'
     discharged = pd.read_hdf(path, key=key)
     
-    path = '/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/dsrg_accreted_particles.hdf5'
+    path = f'{rootPath}Stellar_Feedback_Code/SNeData/dsrg_accreted_particles.hdf5'
     accreted = pd.read_hdf(path, key=key)
 
 
@@ -403,10 +395,11 @@ def calc_adv_accreted(sim, haloid, save=True, verbose=True):
         aCache['recycleTime'] = np.array(aCache['time']) - np.array(dCache['time'])
 #         print(dCache['time'],aCache['time'], aCache['recycleTime'])
         
+        adv_accreted = pd.concat([adv_accreted, aCache])
         
     if save:
         key = f'{sim}_{str(int(haloid))}'
-        filepath = '/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/adv_accreted.hdf5'
+        filepath = f'{rootPath}Stellar_Feedback_Code/SNeData/adv_accreted.hdf5'
         print(f'Saving {key} adv. accreted particle dataset to {filepath}')
         adv_accreted.to_hdf(filepath, key=key)
         
@@ -458,7 +451,7 @@ def read_all_discharged():
     
     predischarged = pd.DataFrame()
     discharged = pd.DataFrame()
-    dsrg_accreted = pd.DataFrame()
+    adv_accreted = pd.DataFrame()
     preheated= pd.DataFrame()
     heated= pd.DataFrame()
     
@@ -477,10 +470,9 @@ def read_all_discharged():
         discharged1['key'] = key
         discharged = pd.concat([discharged, discharged1])
         
-        dsrg_accreted1 = pd.read_hdf(f'{rootPath}Stellar_Feedback_Code/SNeData/dsrg_accreted_particles.hdf5',\
-            key=key)
-        dsrg_accreted1['key'] = key
-        dsrg_accreted = pd.concat([dsrg_accreted, dsrg_accreted1])
+        adv_accreted1 = pd.read_hdf(f'{rootPath}Stellar_Feedback_Code/SNeData/adv_accreted.hdf5', key=key)
+        adv_accreted1['key'] = key
+        adv_accreted = pd.concat([adv_accreted, adv_accreted1])
   
         preheated1 = pd.read_hdf(f'{rootPath}Stellar_Feedback_Code/SNeData/preheated_particles.hdf5', key=key)
         preheated1['key'] = key
@@ -490,8 +482,8 @@ def read_all_discharged():
         heated1['key'] = key
         heated = pd.concat([heated, heated1])
        
-    print(f'> Returning (predischarged, discharged, accreted, preheated, heated) for all available satellites <')
-    return predischarged, discharged, dsrg_accreted, preheated, heated
+    print(f'> Returning (predischarged, discharged, adv. accreted, preheated, heated) for all available satellites <')
+    return predischarged, discharged, adv_accreted, preheated, heated
 
 
 
@@ -509,8 +501,7 @@ def read_accreted():
         i += 1
         sim = key[:4]
         haloid = int(key[5:])
-        adv_accreted1 = pd.read_hdf('/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/adv_accreted.hdf5',\
-             key=key)
+        adv_accreted1 = pd.read_hdf(f'{rootPath}Stellar_Feedback_Code/SNeData/adv_accreted.hdf5', key=key)
         adv_accreted1['key'] = key
         adv_accreted = pd.concat([adv_accreted, adv_accreted1])
 

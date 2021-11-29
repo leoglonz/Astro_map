@@ -17,6 +17,14 @@ import matplotlib as mpl
 
 
 
+############################################################################
+##### Change directory nesting here to locate your data's root folder! #####
+# rootPath = '/home/lonzaric/astro_research/'
+rootPath = '~/Desktop/'
+############################################################################
+
+
+
 # define some constants, which should be accessible by any code that imports base.py or analysis.py
 hubble =  0.6776942783267969 # hubble constant
 age = 13.800797497330507 # age of universe at z=0
@@ -87,7 +95,7 @@ setattr(mpl.axes.Axes, "plot_median", plot_median)
 # define functions for basic data manipulation, importing, etc. used by everything
 def get_stored_filepaths_haloids(sim,z0haloid):
     # get snapshot paths and haloids from stored file
-    with open('/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/filepaths_haloids.pickle','rb') as f:
+    with open(f'{rootPath}Stellar_Feedback_Code/SNeData/filepaths_haloids.pickle','rb') as f:
         d = pickle.load(f)
     try:
         filepaths = d['filepaths'][sim]
@@ -106,7 +114,7 @@ def get_stored_filepaths_haloids(sim,z0haloid):
 def read_timesteps(sim):
     '''Function to read in the data file which contains quenching and infall times'''
     data = []
-    with open(f'/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/timesteps_data/{sim}.data', 'rb') as f:
+    with open(f'{rootPath}Stellar_Feedback_Code/SNeData/timesteps_data/{sim}.data', 'rb') as f:
         while True:
             try:
                 data.append(pickle.load(f,encoding='latin1'))
@@ -120,7 +128,7 @@ def read_timesteps(sim):
 def read_timescales():
     '''Function to read in the data file which contains quenching and infall times'''
     data = []
-    with open('/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/QuenchingTimescales.data', 'rb') as f:
+    with open('/Users/leolonzarich/Desktop/Stellar_Feedback_Code/SNeData/QuenchingTimescales.data', 'rb') as f:
         while True:
             try:
                 data.append(pickle.load(f,encoding='latin1'))
@@ -134,7 +142,7 @@ def read_timescales():
 def read_infall_properties():
     '''Function to read in the data file with quenching timescales and satellite properties at infall.'''
     data = []
-    with open(f'/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/QuenchingTimescales_InfallProperties.data','rb') as f:
+    with open(f'{rootPath}Stellar_Feedback_Code/SNeData/QuenchingTimescales_InfallProperties.data','rb') as f:
         while True:
             try: 
                 data.append(pickle.load(f))

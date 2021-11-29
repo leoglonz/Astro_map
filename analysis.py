@@ -17,14 +17,6 @@ import numpy as np
 import pickle
 
 from base import *
-from compiler import *
-
-
-
-##### Change directory nesting here so that your data can be found in your root folder! ####
-rootPath = '/home/lonzaric/astro_research/'
-# rootPath = '~/Desktop/'
-############################################################################################
 
 
 
