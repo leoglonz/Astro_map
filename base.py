@@ -42,8 +42,13 @@ mpl.rcParams.update({'figure.dpi': 200,
                      'ytick.right': True})
 
 
-# function to plot a median line over some data
+
 def plot_median(ax,x,y,logx=False,logy=False,bins=False,std=False,**kwargs):
+    '''
+    -> Function to plot a median line over some set of data.
+    '''
+    #--------------------------------#
+
     from scipy.stats import binned_statistic
     if logx:
         x = np.log10(x)
@@ -94,7 +99,11 @@ setattr(mpl.axes.Axes, "plot_median", plot_median)
 
 # define functions for basic data manipulation, importing, etc. used by everything
 def get_stored_filepaths_haloids(sim,z0haloid):
-    # get snapshot paths and haloids from stored file
+    '''
+    -> Get snapshot paths and haloids from stored file.
+    '''
+    #--------------------------------#
+
     with open(f'{rootPath}Stellar_Feedback_Code/SNeData/filepaths_haloids.pickle','rb') as f:
         d = pickle.load(f)
     try:
@@ -110,9 +119,13 @@ def get_stored_filepaths_haloids(sim,z0haloid):
         raise
     return filepaths,haloids,h1ids
     
-# timesteps data
+
 def read_timesteps(sim):
-    '''Function to read in the data file which contains quenching and infall times'''
+    '''
+    -> Function to read in the data file which contains quenching and infall times.
+    '''
+    #--------------------------------#
+
     data = []
     with open(f'{rootPath}Stellar_Feedback_Code/SNeData/timesteps_data/{sim}.data', 'rb') as f:
         while True:
@@ -124,9 +137,14 @@ def read_timesteps(sim):
     data = pd.DataFrame(data)
     return data
 
-# timescales (quenching timescales, derived from timesteps)
+
+
 def read_timescales():
-    '''Function to read in the data file which contains quenching and infall times'''
+    '''
+    -> Function to read in the data file which contains quenching and infall times.
+    '''
+    #--------------------------------#
+    
     data = []
     with open(f'{rootPath}Stellar_Feedback_Code/SNeData/QuenchingTimescales.data', 'rb') as f:
         while True:
@@ -138,9 +156,14 @@ def read_timescales():
     data = pd.DataFrame(data)
     return data
 
-# infall properties (properties of satellites at t_infall, used in Figure 6 of Akins et al. 2021)
+
+
 def read_infall_properties():
-    '''Function to read in the data file with quenching timescales and satellite properties at infall.'''
+    '''
+    -> Function to read in the data file with quenching timescales and satellite properties at time of infall.
+    '''
+    #--------------------------------#
+    
     data = []
     with open(f'{rootPath}Stellar_Feedback_Code/SNeData/QuenchingTimescales_InfallProperties.data','rb') as f:
         while True:
@@ -154,8 +177,14 @@ def read_infall_properties():
     
     return data
 
-# determines the snapshot at which to start tracking (first snapshot where satellite is within 2 Rvir of host)
+
+
 def get_snap_start(sim,z0haloid):
+    '''
+    -> Determines the snapshot at which to start tracking (first snapshot where satellite is within 2 Rvir of host)
+    '''
+    #--------------------------------#
+    
     print(f'\t {sim}-{z0haloid}: Getting starting snapshot (dist = 2 Rvir)')
     filepaths,haloids,h1ids = get_stored_filepaths_haloids(sim,z0haloid)
     ts = read_timesteps(sim)

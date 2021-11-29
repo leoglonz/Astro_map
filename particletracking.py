@@ -19,7 +19,10 @@ from base import *
 hubble =  0.6776942783267969
 
 def get_iords(sim, z0haloid, filepaths, haloids):
-    # '''Get the particle indices (iords) for all gas particles that have been in the halo since snap_start.''''
+    '''
+    _> Get the particle indices (iords) for all gas particles that have been in the halo since snap_start.
+    '''
+    
     path = f'../../Data/iords/{sim}_{z0haloid}.pickle'
     if os.path.exists(path):
         print(f'Found iords file at {path}, loading these...')
@@ -43,6 +46,7 @@ def get_iords(sim, z0haloid, filepaths, haloids):
     return iords
 
 def run_tracking(sim, z0haloid, filepaths,haloids,h1ids):
+    
     # now we need to start tracking, so we need to get the iords
     iords = get_iords(sim, z0haloid, filepaths, haloids)
     
@@ -183,11 +187,12 @@ def analysis(s,halo,h1,gas_particles,h,haloid,h1id):
             r_half = np.nan
 
     output['sat_r_half'] = r_half
-    output['sat_r_gas'] = r_gas # store these two radii, in post-processing define r_gal as max(r_gas,r_half) but also ensure r_gal doesn't decrease
+    # store these two radii, in post-processing define r_gal as max(r_gas,r_half) but also ensure r_gal doesn't decrease.
+    output['sat_r_gas'] = r_gas 
     
     
     
-    # defining r_g of host
+    # defining r_g of host.
     try:
         pynbody.analysis.angmom.faceon(h1)
         Rvir = h1.properties['Rvir'] / hubble * a 

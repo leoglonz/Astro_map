@@ -244,6 +244,8 @@ def calc_discharged(sim, haloid, save=True, verbose=True):
                     out = dat[time==t2].copy()
                     predischarged = pd.concat([predischarged, in_])
                     discharged = pd.concat([discharged, out])
+                    
+                    if 
 
                 # specifically picking out that gas accreted after one time step.
                 if (outside_disk[i-1] and sat_disk[i]):
@@ -461,8 +463,7 @@ def read_all_discharged():
         i += 1
         sim = key[:4]
         haloid = int(key[5:])
-        predischarged1 = pd.read_hdf(f'{rootPath}Stellar_Feedback_Code/SNeData/predischarged_particles.hdf5',\
-             key=key)
+        predischarged1 = pd.read_hdf(f'{rootPath}Stellar_Feedback_Code/SNeData/predischarged_particles.hdf5', key=key)
         predischarged1['key'] = key
         predischarged = pd.concat([predischarged, predischarged1])
         
