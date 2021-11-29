@@ -6,7 +6,7 @@
 # Github permalink: https://github.com/hollisakins/Justice_League_Code/blob/
 #                    e049137edcfdc9838ebb3cf0fcaa4ee46e977cec/Analysis/RamPressure/base.py
 # ____________________________________________________________________________________________
-# Last revised: 28 Nov. 2021
+# Last revised: 29 Nov. 2021
 
 import pynbody
 import pandas as pd
@@ -19,8 +19,8 @@ import matplotlib as mpl
 
 ############################################################################
 ##### Change directory nesting here to locate your data's root folder! #####
-# rootPath = '/home/lonzaric/astro_research/'
-rootPath = '~/Desktop/'
+rootPath = '/home/lonzaric/astro_research/'
+# rootPath = '~/Desktop/'
 ############################################################################
 
 
@@ -128,7 +128,7 @@ def read_timesteps(sim):
 def read_timescales():
     '''Function to read in the data file which contains quenching and infall times'''
     data = []
-    with open('/Users/leolonzarich/Desktop/Stellar_Feedback_Code/SNeData/QuenchingTimescales.data', 'rb') as f:
+    with open(f'{rootPath}Stellar_Feedback_Code/SNeData/QuenchingTimescales.data', 'rb') as f:
         while True:
             try:
                 data.append(pickle.load(f,encoding='latin1'))

@@ -5,7 +5,7 @@
 # Github permalink: https://github.com/hollisakins/Justice_League_Code/blob/
 #                    e049137edcfdc9838ebb3cf0fcaa4ee46e977cec/Analysis/RamPressure/rampressure.py
 # _______________________________________________________________________________________________
-# Last revised: 28 Nov. 2021
+# Last revised: 29 Nov. 2021
 
 import sys
 import tqdm
@@ -250,7 +250,7 @@ def read_ram_pressure(sim, haloid):
     data['tquench'] = age - ts.tquench.iloc[0]   
 
     # loading discharged particle data.
-    predischarged, discharged, accreted, preheated, heated = read_all_discharged()
+    predischarged, discharged, accreted, preheated, heated = read_all_discharged();
 
     # Mgas_div is the gas mass we divide by when plotting rates. this is the gas mass 1 snapshot past.
     Mgas_div = np.array(data.M_gas,dtype=float)
@@ -276,40 +276,40 @@ def read_ram_pressure(sim, haloid):
     Mdisk_div = np.append(Mdisk_div[0], Mdisk_div[:-1])
     data['Mdisk_div'] = Mdisk_div
     
-    # fetching rates of predischarged gas.
+    # 1) fetching rates of predischarged gas.
     data = pd.merge_asof(data, predischarged.groupby(['time']).mass.sum().reset_index(), left_on='t', right_on='time')
     data = data.rename(columns={'mass':'M_predischarged'}) # mass ejected in that snapshot
     data['Mdot_predischarged'] = data.M_predischarged / data.dt # rate of mass ejection 
     data['Mdot_predischarged_by_Mgas'] = data.Mdot_predischarged / Mgas_div # rate of ejection divided by M_gas
     data['Mdot_predischarged_by_Mdisk'] = data.Mdot_predischarged / Mdisk_div # rate of ejection divided by M_disk
 
-    # fetching rates of all discharged gas.
+    # 2) fetching rates of all discharged gas.
     data = pd.merge_asof(data, discharged.groupby(['time']).mass.sum().reset_index(), left_on='t', right_on='time')
     data = data.rename(columns={'mass':'M_discharged'}) 
     data['Mdot_discharged'] = data.M_discharged / data.dt 
     data['Mdot_discharged_by_Mgas'] = data.Mdot_discharged / Mgas_div 
     data['Mdot_discharged_by_Mdisk'] = data.Mdot_discharged / Mdisk_div 
 
-    # next, for accreted gas.
+    # 3) fetching for gas reaccreted onto satellite disk.
     data = pd.merge_asof(data, accreted.groupby(['time']).mass.sum().reset_index(), left_on='t', right_on='time')
     data = data.rename(columns={'mass':'M_accreted'})
     data['Mdot_accreted'] = data.M_accreted / data.dt
     data['Mdot_accreted_by_Mgas'] = data.Mdot_accreted / Mgas_div
     data['Mdot_accreted_by_Mdisk'] = data.Mdot_accreted / Mdisk_div
     
-    # finally, accreted gas
-    accreted_disk = accreted[accreted.state2 == 'sat_disk']
+    # 4) fetching for predischarged heated gas.
+    data = pd.merge_asof(data, preheated.groupby(['time']).mass.sum().reset_index(), left_on='t', right_on='time')
+    data = data.rename(columns={'mass':'M_preheated'})
+    data['Mdot_preheated'] = data.M_preheated / data.dt
+    data['Mdot_preheated_by_Mgas'] = data.Mdot_preheated / Mgas_div
+    data['Mdot_preheated_by_Mdisk'] = data.Mdot_preheated / Mdisk_div
     
-    data = pd.merge_asof(data, accreted.groupby(['time']).mass.sum().reset_index(), left_on='t', right_on='time')
-    data = data.rename(columns={'mass':'M_accreted'})
-    data['Mdot_accreted'] = data.M_accreted / data.dt
-    data['Mdot_accreted_by_Mgas'] = data.Mdot_accreted / Mgas_div
-
-    data = pd.merge_asof(data, accreted_disk.groupby(['time']).mass.sum().reset_index(), left_on='t', right_on='time')
-    data = data.rename(columns={'mass':'M_accreted_disk'})
-    data['Mdot_accreted_disk'] = data.M_accreted_disk / data.dt
-    data['Mdot_accreted_disk_by_Mgas'] = data.Mdot_accreted_disk / Mgas_div
-    data['Mdot_accreted_disk_by_Mdisk'] = data.Mdot_accreted_disk / Mdisk_div
+    # 5) fetching for discharged heated gas.
+    data = pd.merge_asof(data, heated.groupby(['time']).mass.sum().reset_index(), left_on='t', right_on='time')
+    data = data.rename(columns={'mass':'M_heated'})
+    data['Mdot_heated'] = data.M_accreted / data.dt
+    data['Mdot_heated_by_Mgas'] = data.Mdot_heated / Mgas_div
+    data['Mdot_heated_by_Mdisk'] = data.Mdot_heated / Mdisk_div
 
     # overall rate of gas-loss
     dM_gas = np.array(data.M_gas,dtype=float)[1:] - np.array(data.M_gas,dtype=float)[:-1]
@@ -335,7 +335,7 @@ def read_all_ram_pressure():
     '''
     -> Returns workable dataframes containing ram pressures for specified set of gas particles.
     '''
-    #--------------------------------#
+    #--------------------------------#    
     
     data_all = pd.DataFrame();
     
@@ -343,7 +343,7 @@ def read_all_ram_pressure():
             'h148_278','h148_329','h229_20','h229_22','h229_23','h229_27','h229_55',
             'h242_24','h242_41','h242_80','h329_33','h329_137']
     
-    i = 1;
+    i = 1
     for key in keys:
         print(i, end=' ')
         i += 1

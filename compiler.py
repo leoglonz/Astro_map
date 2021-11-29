@@ -482,7 +482,7 @@ def read_all_discharged():
         heated1['key'] = key
         heated = pd.concat([heated, heated1])
        
-    print(f'> Returning (predischarged, discharged, adv. accreted, preheated, heated) for all available satellites <')
+    print(f'> Returning (predischarged, discharged, adv. accreted, preheated, heated) <')
     return predischarged, discharged, adv_accreted, preheated, heated
 
 

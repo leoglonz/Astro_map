@@ -9,7 +9,7 @@
 # Github permalink: https://github.com/hollisakins/Justice_League_Code/blob/ 
 #                    e049137edcfdc9838ebb3cf0fcaa4ee46e977cec/Analysis/RamPressure/analysis.py
 # ____________________________________________________________________________________________
-# Last revised: 28 Nov. 2021
+# Last revised: 29 Nov. 2021
 
 import pynbody
 import pandas as pd
@@ -29,7 +29,7 @@ def get_keys():
     path1 = f'{rootPath}Stellar_Feedback_Code/SNeData/discharged_particles.hdf5'
     with pd.HDFStore(path1) as hdf:
         keys = [k[1:] for k in hdf.keys()]
-    print(*keys)
+#     print(*keys)
     return keys
 
 
