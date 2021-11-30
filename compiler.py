@@ -11,7 +11,7 @@
 # Github permalink: https://github.com/hollisakins/Justice_League_Code/blob/ 
 #                    e049137edcfdc9838ebb3cf0fcaa4ee46e977cec/Analysis/RamPressure/analysis.py
 # ____________________________________________________________________________________________
-# Last revised: 28 Nov. 2021
+# Last revised: 30 Nov. 2021
 
 import pynbody
 import pandas as pd
@@ -242,15 +242,6 @@ def calc_discharged(sim, haloid, save=True, verbose=True):
                 if (sat_disk[i-1] and outside_disk[i]):
                     in_ = dat[time==time[i-1]].copy()
                     out = dat[time==t2].copy()
-                    
-#                     for j in range(0, len(out.time)):
-#                         if (out.coolontime[j] > out.time[j]):
-#                             out['hot'][j] == True
-
-#                         if (out.coolontime[j] < out.time[j]):
-#                             out['hot'][j] == False   
-                        
-                    
                     predischarged = pd.concat([predischarged, in_])
                     discharged = pd.concat([discharged, out])
                     
@@ -266,7 +257,29 @@ def calc_discharged(sim, haloid, save=True, verbose=True):
     predischarged = predischarged.apply(calc_angles, axis=1)
     print('Calculating discharged angles.')
     discharged = discharged.apply(calc_angles, axis=1)
-   
+    
+    
+    # adding a key to tell us whether or not the particle underwent supernova heating just prior to discharge.    
+    hot = {'hot': ""} 
+    discharged = discharged.join(pd.DataFrame(columns=hot))
+
+    print('Appending `heating` boolean to discharged.')
+
+    coolontime = np.asarray(discharged.coolontime)
+    time = np.asarray(discharged.time)
+    heating = np.array([], dtype=bool)
+
+    for i,t2 in enumerate(time[0:]):
+        if (coolontime[i] > time[i-1]):
+            heating = np.append(heating, True)
+
+        elif (coolontime[i] < time[i-1]):
+            heating = np.append(heating, False)
+
+        else:
+            raise ValueError('Check coolontime and time keys match; check dataframe')
+
+    discharged['hot'] = heating
     
     if save:
         key = f'{sim}_{str(int(haloid))}'

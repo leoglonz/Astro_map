@@ -1,7 +1,9 @@
 # A simple script to generate the 'predischarged', 'discharged', and (dsrg) 'accreted' dataframes.
 #
 # __________________________
-# Last revised: 28 Nov. 2021
+# Last revised: 30 Nov. 2021
+
+import tqdm
 
 from compiler import *
 
