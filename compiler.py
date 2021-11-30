@@ -225,8 +225,8 @@ def calc_discharged(sim, haloid, save=True, verbose=True):
     predischarged = pd.DataFrame() # discharged gas particles but with their properties before discharge.
     discharged = pd.DataFrame() # gas particles that are removed from their satellite's disk
     dsrg_accreted = pd.DataFrame() # gas accreted following a discharge event.
-
     
+        
     pids = np.unique(data.pid)
     for pid in tqdm.tqdm(pids):
         dat = data[data.pid==pid]
@@ -242,11 +242,19 @@ def calc_discharged(sim, haloid, save=True, verbose=True):
                 if (sat_disk[i-1] and outside_disk[i]):
                     in_ = dat[time==time[i-1]].copy()
                     out = dat[time==t2].copy()
+                    
+#                     for j in range(0, len(out.time)):
+#                         if (out.coolontime[j] > out.time[j]):
+#                             out['hot'][j] == True
+
+#                         if (out.coolontime[j] < out.time[j]):
+#                             out['hot'][j] == False   
+                        
+                    
                     predischarged = pd.concat([predischarged, in_])
                     discharged = pd.concat([discharged, out])
                     
-                    if 
-
+                   
                 # specifically picking out that gas accreted after one time step.
                 if (outside_disk[i-1] and sat_disk[i]):
                     acc = dat[time==t2].copy()
@@ -350,8 +358,6 @@ def calc_adv_accreted(sim, haloid, save=True, verbose=True):
     #--------------------------------#
     
     import tqdm
-    
-    
     key = f'{sim}_{str(int(haloid))}'
     
     path = f'{rootPath}Stellar_Feedback_Code/SNeData/discharged_particles.hdf5'
@@ -368,9 +374,8 @@ def calc_adv_accreted(sim, haloid, save=True, verbose=True):
   
     # defining attribute giving the length of time between discharge and accretion event for each gas particle:
     recycleTime = {'recycleTime': ""} 
-    accreted = accreted.join(pd.DataFrame(columns=recycleTime))
-
-    
+    accreted = accreted.join(pd.DataFrame(columns=recycleTime))   
+        
     for pid in tqdm.tqdm(pids):
         dis = discharged[discharged.pid==pid]
         acc = accreted[accreted.pid==pid]
@@ -389,7 +394,7 @@ def calc_adv_accreted(sim, haloid, save=True, verbose=True):
         else:
             aCache = acc
 
-        if len(aCache) == 0: # if no instances of reaccretion, on to next particle
+        if len(aCache) == 0: # if no instances of reaccretion, move on to next particle.
             continue
 
         dCache = dis[0:len(aCache)]
@@ -398,6 +403,8 @@ def calc_adv_accreted(sim, haloid, save=True, verbose=True):
 #         print(dCache['time'],aCache['time'], aCache['recycleTime'])
         
         adv_accreted = pd.concat([adv_accreted, aCache])
+        
+
         
     if save:
         key = f'{sim}_{str(int(haloid))}'

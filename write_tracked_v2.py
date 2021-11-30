@@ -2,10 +2,9 @@
 # added to the output dataset as the callable key 'sat_Mvir'.
 #
 # __________________________
-# Last revised: 28 Nov. 2021
+# Last revised: 29 Nov. 2021
 
 import pandas as pd
-import tqdm
 
 from compiler import *
 
