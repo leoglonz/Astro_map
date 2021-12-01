@@ -389,7 +389,7 @@ def calc_adv_accreted(sim, haloid, save=True, verbose=True):
     recycleTime = {'recycleTime': ""} 
     accreted = accreted.join(pd.DataFrame(columns=recycleTime)) 
     # ensuring that our new accreted dataframe inherits sne heating identified 'hot'.
-    hot = {'hot':  reted.join(pd.DataFrame(columns=hot))      
+    hot = {'hot':  reted.join(pd.DataFrame(columns=hot))}      
         
     for pid in tqdm.tqdm(pids):
         dis = discharged[discharged.pid==pid]
