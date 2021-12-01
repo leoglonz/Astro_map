@@ -387,7 +387,9 @@ def calc_adv_accreted(sim, haloid, save=True, verbose=True):
   
     # defining attribute giving the length of time between discharge and accretion event for each gas particle:
     recycleTime = {'recycleTime': ""} 
-    accreted = accreted.join(pd.DataFrame(columns=recycleTime))   
+    accreted = accreted.join(pd.DataFrame(columns=recycleTime)) 
+    # ensuring that our new accreted dataframe inherits sne heating identified 'hot'.
+    hot = {'hot':  reted.join(pd.DataFrame(columns=hot))      
         
     for pid in tqdm.tqdm(pids):
         dis = discharged[discharged.pid==pid]
@@ -414,7 +416,9 @@ def calc_adv_accreted(sim, haloid, save=True, verbose=True):
 
         aCache['recycleTime'] = np.array(aCache['time']) - np.array(dCache['time'])
 #         print(dCache['time'],aCache['time'], aCache['recycleTime'])
-        
+        aCache['hot'] = dCache['hot']
+    
+    
         adv_accreted = pd.concat([adv_accreted, aCache])
         
 
