@@ -30,6 +30,6 @@ for key in keys:
     
     data = pd.merge_asof(data, ts.sort_values('t'), left_on='time', right_on='t', direction='nearest', tolerance=1)
     
-    filepath = '/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/tracked_particles_v2.hdf5'
+    filepath = '/home/lonzaric/astro_research/Stellar_Feedback_Code/SNeData/tracked_particles_v3.hdf5'
     print(f'Saving {key} tracked_particles datasets to {filepath}')
     data.to_hdf(filepath, key=key)
