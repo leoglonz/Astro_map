@@ -266,20 +266,23 @@ def calc_discharged(sim, haloid, save=True, verbose=True):
     print('Appending `heating` boolean to discharged.')
 
     coolontime = np.asarray(discharged.coolontime)
-    time = np.asarray(discharged.time)
-    heating = np.array([], dtype=bool)
+    time = np.asarray(predischarged.time)
+    
+    discharged['hot'] = coolontime > time
+    
+#     heating = np.array([], dtype=bool)
+   
+#     for i,t2 in enumerate(time[0:]):
+#         if (coolontime[i] > time[i-1]):
+#             heating = np.append(heating, True)
 
-    for i,t2 in enumerate(time[0:]):
-        if (coolontime[i] > time[i-1]):
-            heating = np.append(heating, True)
+#         elif (coolontime[i] < time[i-1]):
+#             heating = np.append(heating, False)
 
-        elif (coolontime[i] < time[i-1]):
-            heating = np.append(heating, False)
+#         else:
+#             raise ValueError('Check coolontime and time keys match; check dataframe')
 
-        else:
-            raise ValueError('Check coolontime and time keys match; check dataframe')
-
-    discharged['hot'] = heating
+    
     
     if save:
         key = f'{sim}_{str(int(haloid))}'
