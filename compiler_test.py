@@ -11,7 +11,7 @@
 # Github permalink: https://github.com/hollisakins/Justice_League_Code/blob/ 
 #                    e049137edcfdc9838ebb3cf0fcaa4ee46e977cec/Analysis/RamPressure/analysis.py
 # ____________________________________________________________________________________________
-# Last revised: 30 Nov. 2021
+# Last revised: 5 Dec. 2021
 
 import pynbody
 import pandas as pd
@@ -106,6 +106,23 @@ def read_tracked_particles(sim, haloid, verbose=False):
     data['IGM'] = IGM
 
     return data
+
+
+def read_all_tracked():
+    '''
+    -> Identifies tracked particles for all satellites used in this study and appends them to a single dataframe. 
+    '''
+    #--------------------------------#
+    
+    tracked = pd.DataFrame()
+    keys = get_keys()
+    for key in keys:
+        tracked1 = pd.read_hdf(f'{rootPath}Stellar_Feedback_Code/SNeData/tracked_particles_v3.hdf5', key=key)
+        tracked['key'] = key
+        tracked = pd.concat([tracked, tracked1])
+
+    print(f'> Returning (tracked) for all available satellites <')
+    return tracked
 
 
 

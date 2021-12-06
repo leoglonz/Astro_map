@@ -11,7 +11,7 @@
 # Github permalink: https://github.com/hollisakins/Justice_League_Code/blob/ 
 #                    e049137edcfdc9838ebb3cf0fcaa4ee46e977cec/Analysis/RamPressure/analysis.py
 # ____________________________________________________________________________________________
-# Last revised: 30 Nov. 2021
+# Last revised: 5 Dec. 2021
 
 import pynbody
 import pandas as pd
@@ -35,7 +35,7 @@ def read_tracked_particles(sim, haloid, verbose=False):
     key = f'{sim}_{str(int(haloid))}'
 
     # import the tracked particles dataset
-    path1 = f'{rootPath}Stellar_Feedback_Code/SNeData/tracked_particles_v2.hdf5' # data including virial mass attribute 'Mvir'.
+    path1 = f'{rootPath}Stellar_Feedback_Code/SNeData/tracked_particles.hdf5' # data including virial mass attribute 'Mvir'.
 #     path1 = f'{rootPath}Stellar_Feedback_Code/SNeData/tracked_particles.hdf5' # original dataset
     data = pd.read_hdf(path1, key=key)
     

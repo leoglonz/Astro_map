@@ -6,7 +6,7 @@
 # Github permalink: https://github.com/hollisakins/Justice_League_Code/blob/
 #                    e049137edcfdc9838ebb3cf0fcaa4ee46e977cec/Analysis/RamPressure/particletracking.py
 # ____________________________________________________________________________________________________
-# Last revised: 28 Nov. 2021
+# Last revised: 5 Dec. 2021
 
 import sys
 import tqdm
@@ -23,7 +23,7 @@ def get_iords(sim, z0haloid, filepaths, haloids):
     _> Get the particle indices (iords) for all gas particles that have been in the halo since snap_start.
     '''
     
-    path = f'../../Data/iords/{sim}_{z0haloid}.pickle'
+    path = f'{rootPath}Stellar_Feedback_Code/SNeData/iords/{sim}_{z0haloid}.pickle'
     if os.path.exists(path):
         print(f'Found iords file at {path}, loading these...')
         with open(path,'rb') as infile:
@@ -272,7 +272,7 @@ if __name__ == '__main__':
 
     # we save the data as an .hdf5 file since this is meant for large datasets, so that should work pretty good
     output = run_tracking(sim, z0haloid, filepaths, haloids, h1ids)
-    output.to_hdf('../../Data/tracked_particles.hdf5',key=f'{sim}_{z0haloid}')
+    output.to_hdf('~/astro_research/Stellar_Feedback_Code/SNeData/tracked_particles_v3.hdf5',key=f'{sim}_{z0haloid}')
 
 
 

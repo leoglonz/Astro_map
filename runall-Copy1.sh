@@ -1,9 +1,6 @@
-# include `wait` in between commands to do them in batches (each command uses at most ~3.5 Gb of memory).
-# run this in terminal via 'bash runall.sh'.
-
 #!/bin/bash
 
-cd ~/astro_research/Stellar_Feedback_Code/
+cd ~/Research/Justice_League_Code/Analysis/RamPressure/
 pwd
 date
 
@@ -32,3 +29,6 @@ wait
 python particletracking.py h148 80 & #18
 python particletracking.py h148 329 & #19
 wait
+
+# include `wait` in between commands to do them in batches
+# by my estimate each command uses at most 5-7% of the memory on quirm, so don't run more than 10 at once (ideally less than 10)
