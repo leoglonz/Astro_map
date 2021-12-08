@@ -1,7 +1,7 @@
 # runs advanced calculation of accretion to further refine selection to those particles accreted following a discharge event.
 #
 # __________________________
-# Last revised: 28 Nov. 2021
+# Last revised: 7 Dec. 2021
 
 from compiler import *
 
@@ -17,5 +17,5 @@ print('Compiling sim gas into sets (advanced accreted) for the following keys:',
 for key in keys:
     sim = str(key[:4])
     haloid = int(key[5:])
-    # note that adv_accreted is automatically concatenated.
-    adv_accreted = calc_adv_accreted(sim, haloid, save=True, verbose=False)
+    # note that reaccreted is automatically concatenated.
+    adv_accreted = calc_reaccreted(sim, haloid, save=True, verbose=False)

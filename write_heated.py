@@ -1,7 +1,7 @@
 # A simple script to generate the 'preheated' and 'heated' dataframes.
 #
 # __________________________
-# Last revised: 28 Nov. 2021
+# Last revised: 7 Dec. 2021
 
 from compiler import *
 
@@ -18,4 +18,4 @@ for key in keys:
     haloid = int(key[5:])
     # note that heated is automatically concatenated without double counting, irrespective 
     # of how many times this code is run.
-    preheated, heated = calc_dsrg_heated(sim, haloid, save=True, verbose=False)
+    preheated, heated = calc_heated(sim, haloid, save=True, verbose=False)

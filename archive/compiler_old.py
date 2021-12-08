@@ -11,7 +11,7 @@
 # Github permalink: https://github.com/hollisakins/Justice_League_Code/blob/ 
 #                    e049137edcfdc9838ebb3cf0fcaa4ee46e977cec/Analysis/RamPressure/analysis.py
 # ____________________________________________________________________________________________
-# Last revised: 6 Dec. 2021
+# Last revised: 5 Dec. 2021
 
 import pynbody
 import pandas as pd
@@ -35,7 +35,7 @@ def read_tracked_particles(sim, haloid, verbose=False):
     key = f'{sim}_{str(int(haloid))}'
 
     # import the tracked particles dataset
-    path1 = f'{rootPath}Stellar_Feedback_Code/SNeData/tracked_particles.hdf5' # data including virial mass attribute 'Mvir'.
+    path1 = f'{rootPath}Stellar_Feedback_Code/SNeData/tracked_particles_v3.hdf5' # data including virial mass attribute 'Mvir'.
 #     path1 = f'{rootPath}Stellar_Feedback_Code/SNeData/tracked_particles.hdf5' # original dataset
     data = pd.read_hdf(path1, key=key)
     
@@ -108,23 +108,6 @@ def read_tracked_particles(sim, haloid, verbose=False):
     return data
 
 
-def read_all_tracked():
-    '''
-    -> Identifies tracked particles for all satellites used in this study and appends them to a single dataframe. 
-    '''
-    #--------------------------------#
-    
-    tracked = pd.DataFrame()
-    keys = get_keys()
-    for key in keys:
-        tracked1 = pd.read_hdf(f'{rootPath}Stellar_Feedback_Code/SNeData/tracked_particles_v3.hdf5', key=key)
-        tracked['key'] = key
-        tracked = pd.concat([tracked, tracked1])
-
-    print(f'> Returning (tracked) for all available satellites <')
-    return tracked
-
-
 
 def calc_ejected_expelled(sim, haloid, save=True, verbose=True):
     '''
@@ -136,7 +119,7 @@ def calc_ejected_expelled(sim, haloid, save=True, verbose=True):
     import tqdm
     data = read_tracked_particles(sim, haloid, verbose=verbose)
 
-    if verbose: print(f'Now compiling ejected/expelled particles for {sim}-{haloid}...')
+    if verbose: print(f'Now computing ejected/expelled particles for {sim}-{haloid}...')
     ejected = pd.DataFrame()
     cooled = pd.DataFrame()
     expelled = pd.DataFrame()
@@ -368,16 +351,17 @@ def calc_heated(sim, haloid, save=True, verbose=True):
 
 
 
-def calc_reaccreted(sim, haloid, save=True, verbose=True):
-    '''
-    -> Screening the 'accreted' df compiled by 'calc_discharge()' specifically for gas particles that are reaccreted 
+def calc_accreted(sim, haloid, save=True, verbose=True):
+    ''' 
+    -> 'Advanced' computation of accreted gas particles.
+    -> Screening the 'accreted' df compiled by 'calc_discharge()' specifically for gas particles being reaccreated 
         (that is, gas discharged from its satellite's disk, but which is accreted back onto the disk at a later timestep.)
     '''
     #--------------------------------#
-
+    
     import tqdm
     key = f'{sim}_{str(int(haloid))}'
-
+    
     path = f'{rootPath}Stellar_Feedback_Code/SNeData/discharged_particles.hdf5'
     discharged = pd.read_hdf(path, key=key)
     
@@ -385,20 +369,18 @@ def calc_reaccreted(sim, haloid, save=True, verbose=True):
     accreted = pd.read_hdf(path, key=key)
 
 
-    if verbose: print(f'Now computing reaccreted particles for {sim}-{haloid}...')
-    reaccreted = pd.DataFrame() # gas accreted following a discharge event.
+    if verbose: print(f'Now computing adv. accreted particles for {sim}-{haloid}...')
+    adv_accreted = pd.DataFrame() # gas accreted following a discharge event.
+
+    pids = np.unique(discharged.pid) # quicker to use 'discharged' because fewer unique particles.
   
     # defining attribute giving the length of time between discharge and accretion event for each gas particle:
     recycleTime = {'recycleTime': ""} 
     accreted = accreted.join(pd.DataFrame(columns=recycleTime)) 
-    discharged = discharged.join(pd.DataFrame(columns=recycleTime))
     # ensuring that our new accreted dataframe inherits sne heating identified 'hot'.
-    hot = {'hot':  ""}
-    accreted = accreted.join(pd.DataFrame(columns=hot))
-    discharged = discharged.join(pd.DataFrame(columns=hot))    
+    hot = {'hot': ''} 
+    accreted = accreted.join(pd.DataFrame(columns=hot))      
         
-        
-    pids = np.unique(discharged.pid) # quicker to use 'discharged' because fewer unique particles.
     for pid in tqdm.tqdm(pids):
         dis = discharged[discharged.pid==pid]
         acc = accreted[accreted.pid==pid]
@@ -409,46 +391,39 @@ def calc_reaccreted(sim, haloid, save=True, verbose=True):
 
         # removing initial accretion event if it does not correspond to a discharge; else no alterations.
         # check to ensure that our discharge event actually has an accretion:
-        if (len(dTime) == 0):
-            print('Problem: No instance of discharge per particle for '+str(pid))
+        if (len(aTime) == 0) or (len(dTime) == 0): # if no instances of accretion or none of discharge, move on to next particle.
             continue
-        if (len(aTime) == 0): # if no instances of accretion, move on to next particle
-            if (len(dis) != 1):
-                print('Problem: multiple discharges but no accretion events for '+str(pid))
-                continue
-            aCache = dis[0]
-            aCache['recycleTime'] = np.array([-1])
-            reaccreted = pd.concat([reaccreted, aCache])
-            continue
-        if (aTime[0] < dTime[0]): # In there is an initial accretion
+        if (aTime[0] < dTime[0]):
             aCache = acc[1:]
+
         else:
             aCache = acc
 
-        dCache = dis #[0:len(aCache)]
-    
-        aCache['recycleTime'] = np.array(aCache['time']) - (np.array(dCache['time'])[0:len(aCache)])
+        if len(aCache) == 0: # if no instances of reaccretion, move on to next particle.
+            continue
+
+        dCache = dis[0:len(aCache)]
+
+        aCache['recycleTime'] = np.array(aCache['time']) - np.array(dCache['time'])
 #         print(dCache['time'],aCache['time'], aCache['recycleTime'])
         aCache['hot'] = dCache['hot']
-        if len(dCache) != len(aCache):
-            dCache.iloc[-1]['recycleTime'] = -1
-            aCache = aCache.append(dCache.iloc[-1])
-            
     
-        reaccreted = pd.concat([reaccreted, aCache])
+    
+        adv_accreted = pd.concat([adv_accreted, aCache])
         
 
+        
     if save:
         key = f'{sim}_{str(int(haloid))}'
-        filepath = f'{rootPath}Stellar_Feedback_Code/SNeData/reaccreted.hdf5'
-        print(f'Saving {key} reaccreted particle dataset to {filepath}')
-        reaccreted.to_hdf(filepath, key=key)
+        filepath = f'{rootPath}Stellar_Feedback_Code/SNeData/adv_accreted.hdf5'
+        print(f'Saving {key} adv. accreted particle dataset to {filepath}')
+        adv_accreted.to_hdf(filepath, key=key)
         
         
         
-    print(f'> Returning (reaccreted) dataset <')
+    print(f'> Returning (adv. accreted) datasets <')
 
-    return reaccreted
+    return adv_accreted
 
 
 
@@ -486,13 +461,13 @@ def read_all_ejected_expelled():
 
 def read_all_discharged():
     '''
-    -> Reads predischarged, discharged, reaccreted, preheated, and heated into workable dataframes for analysis in notebooks.
+    -> Reads predischarged, discharged, accreted, preheated, and heated into workable dataframes for analysis in notebooks.
     '''
     #--------------------------------#
     
     predischarged = pd.DataFrame()
     discharged = pd.DataFrame()
-    reaccreted = pd.DataFrame()
+    adv_accreted = pd.DataFrame()
     preheated= pd.DataFrame()
     heated= pd.DataFrame()
     
@@ -510,9 +485,9 @@ def read_all_discharged():
         discharged1['key'] = key
         discharged = pd.concat([discharged, discharged1])
         
-        reaccreted1 = pd.read_hdf(f'{rootPath}Stellar_Feedback_Code/SNeData/reaccreted.hdf5', key=key)
-        reaccreted1['key'] = key
-        reaccreted = pd.concat([reaccreted, reaccreted1])
+        adv_accreted1 = pd.read_hdf(f'{rootPath}Stellar_Feedback_Code/SNeData/adv_accreted.hdf5', key=key)
+        adv_accreted1['key'] = key
+        adv_accreted = pd.concat([adv_accreted, adv_accreted1])
   
         preheated1 = pd.read_hdf(f'{rootPath}Stellar_Feedback_Code/SNeData/preheated_particles.hdf5', key=key)
         preheated1['key'] = key
@@ -522,18 +497,18 @@ def read_all_discharged():
         heated1['key'] = key
         heated = pd.concat([heated, heated1])
        
-    print(f'> Returning (predischarged, discharged, reaccreted, preheated, heated) <')
-    return predischarged, discharged, reaccreted, preheated, heated
+    print(f'> Returning (predischarged, discharged, adv. accreted, preheated, heated) <')
+    return predischarged, discharged, adv_accreted, preheated, heated
 
 
 
 def read_accreted():
     '''
-    -> Reads reaccreted particles off into workable dataframes for analysis in notebooks.
+    Reads advanced accreted particles off into workable dataframes for analysis in notebooks.
     '''
     #--------------------------------#
     
-    reaccreted = pd.DataFrame()
+    adv_accreted = pd.DataFrame()
 
     keys = get_keys()
 
@@ -541,10 +516,10 @@ def read_accreted():
         i += 1
         sim = key[:4]
         haloid = int(key[5:])
-        reaccreted1 = pd.read_hdf(f'{rootPath}Stellar_Feedback_Code/SNeData/reaccreted.hdf5', key=key)
-        reaccreted1['key'] = key
-        reaccreted = pd.concat([reaccreted, reaccreted1])
+        adv_accreted1 = pd.read_hdf(f'{rootPath}Stellar_Feedback_Code/SNeData/adv_accreted.hdf5', key=key)
+        adv_accreted1['key'] = key
+        adv_accreted = pd.concat([adv_accreted, adv_accreted1])
 
 
-    print(f'> Returning (reaccreted) for all available satellites <')
-    return reaccreted
+    print(f'> Returning (adv. accreted) for all available satellites <')
+    return adv_accreted
