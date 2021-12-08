@@ -9,7 +9,7 @@
 # Github permalink: https://github.com/hollisakins/Justice_League_Code/blob/ 
 #                    e049137edcfdc9838ebb3cf0fcaa4ee46e977cec/Analysis/RamPressure/analysis.py
 # ____________________________________________________________________________________________
-# Last revised: 30 Nov. 2021
+# Last revised: 8 Dec. 2021
 
 import pynbody
 import pandas as pd
@@ -36,7 +36,8 @@ def get_keys():
 
 def calc_angles(d):
     '''
-    -> Calculates exit angles (angle made between velocity vec of gas particle and velocity vec of satellite) for gas particle.
+    -> Calculates exit angles (angle made between velocity vec of gas particle and velocity vec of host galaxy in satellite
+        rest frame) for selected gas particles.
     '''
     #--------------------------------#
     
