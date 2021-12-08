@@ -213,7 +213,6 @@ def calc_ejected_expelled(sim, haloid, save=True, verbose=True):
         
         
     print(f'> Returning (ejected, cooled, expelled, accreted) datasets <')
-
     return ejected, cooled, expelled, accreted
 
 
@@ -297,7 +296,6 @@ def calc_discharged(sim, haloid, save=True, verbose=True):
         
         
     print(f'> Returning (predischarged, discharged, all accreted) datasets <')
-
     return predischarged, discharged, all_accreted
 
 
@@ -357,7 +355,6 @@ def calc_heated(sim, haloid, save=True, verbose=True):
         
         
     print(f'> Returning (preheated, heated) datasets <')
-
     return preheated, heated
 
 
@@ -422,12 +419,11 @@ def calc_reaccreted(sim, haloid, save=True, verbose=True):
         
     if save:
         key = f'{sim}_{str(int(haloid))}'
-        filepath = f'{rootPath}Stellar_Feedback_Code/SNeData/reaccreted.hdf5'
+        filepath = f'{rootPath}Stellar_Feedback_Code/SNeData/reaccreted_particles.hdf5'
         print(f'Saving {key} reaccreted particle dataset to {filepath}')
         reaccreted.to_hdf(filepath, key=key)
         
     print(f'> Returning (reaccreted) dataset <')
-
     return reaccreted
 
 
@@ -459,7 +455,7 @@ def read_all_ejected_expelled():
         accreted1['key'] = key
         accreted = pd.concat([accreted, accreted1])
 
-    print(f'> Returning (ejected, cooled, expelled, accreted) for all available satellites <')
+    print(f'> Returning (ejected, cooled, expelled, accreted) for all satellites <')
     return ejected, cooled, expelled, accreted
 
 
@@ -489,10 +485,6 @@ def read_all_discharged():
         discharged1 = pd.read_hdf(f'{rootPath}Stellar_Feedback_Code/SNeData/discharged_particles.hdf5', key=key)
         discharged1['key'] = key
         discharged = pd.concat([discharged, discharged1])
-        
-#         adv_accreted1 = pd.read_hdf(f'{rootPath}Stellar_Feedback_Code/SNeData/adv_accreted.hdf5', key=key)
-#         adv_accreted1['key'] = key
-#         adv_accreted = pd.concat([adv_accreted, adv_accreted1])
   
         preheated1 = pd.read_hdf(f'{rootPath}Stellar_Feedback_Code/SNeData/preheated_particles.hdf5', key=key)
         preheated1['key'] = key
@@ -502,18 +494,19 @@ def read_all_discharged():
         heated1['key'] = key
         heated = pd.concat([heated, heated1])
        
-    print(f'> Returning (predischarged, discharged, adv. accreted, preheated, heated) <')
+    print(f'> Returning (predischarged, discharged, adv. accreted, preheated, heated) for all satellites <')
     return predischarged, discharged, preheated, heated
 
 
 
 def read_accreted():
     '''
-    Reads advanced accreted particles off into workable dataframes for analysis in notebooks.
+    Reads all accreted particles, reaccreted particles into workable dataframes for analysis.
     '''
     #--------------------------------#
     
-    adv_accreted = pd.DataFrame()
+    all_accreted = pd.DataFrame()
+    reaccreted = pd.DataFrame()
 
     keys = get_keys()
 
@@ -521,10 +514,14 @@ def read_accreted():
         i += 1
         sim = key[:4]
         haloid = int(key[5:])
-        adv_accreted1 = pd.read_hdf(f'{rootPath}Stellar_Feedback_Code/SNeData/adv_accreted.hdf5', key=key)
-        adv_accreted1['key'] = key
-        adv_accreted = pd.concat([adv_accreted, adv_accreted1])
+        all_accreted1 = pd.read_hdf(f'{rootPath}Stellar_Feedback_Code/SNeData/all_accreted_particles.hdf5', key=key)
+        all_accreted1['key'] = key
+        all_accreted = pd.concat([all_accreted, all_accreted1])
+        
+        reaccreted1 = pd.read_hdf(f'{rootPath}Stellar_Feedback_Code/SNeData/reaccreted_particles.hdf5', key=key)
+        reaccreted1['key'] = key
+        reaccreted = pd.concat([reaccreted, reaccreted1])
 
 
-    print(f'> Returning (adv. accreted) for all available satellites <')
-    return adv_accreted
+    print(f'> Returning (all_accreted, reaccreted) for all satellites <')
+    return all_accreted, reaccreted

@@ -12,10 +12,10 @@ keys = ['h148_13','h148_28','h148_37','h148_45','h148_68','h148_80','h148_283',
         'h242_24','h242_41','h242_80','h329_33','h329_137']
 
 
-print('Compiling sim gas into sets (advanced accreted) for the following keys:', keys)
+print('Compiling sim gas into sets (reaccreted) for the following keys:', keys)
 
 for key in keys:
     sim = str(key[:4])
     haloid = int(key[5:])
     # note that reaccreted is automatically concatenated.
-    adv_accreted = calc_reaccreted(sim, haloid, save=True, verbose=False)
+    reaccreted = calc_reaccreted(sim, haloid, save=True, verbose=False)
