@@ -43,6 +43,20 @@ mpl.rcParams.update({'figure.dpi': 200,
 
 
 
+def get_keys():
+    '''
+    -> Simply retrieving satellite identifiers -- or 'keys' -- for all satellites used in to compile gas particle datasets.
+    '''
+    #--------------------------------#
+    
+    path1 = f'{rootPath}Stellar_Feedback_Code/SNeData/discharged_particles.hdf5'
+    with pd.HDFStore(path1) as hdf:
+        keys = [k[1:] for k in hdf.keys()]
+#     print(*keys)
+    return keys
+
+
+
 def plot_median(ax,x,y,logx=False,logy=False,bins=False,std=False,**kwargs):
     '''
     -> Function to plot a median line over some set of data.

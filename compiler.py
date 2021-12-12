@@ -11,7 +11,7 @@
 # Github permalink: https://github.com/hollisakins/Justice_League_Code/blob/ 
 #                    e049137edcfdc9838ebb3cf0fcaa4ee46e977cec/Analysis/RamPressure/analysis.py
 # ____________________________________________________________________________________________
-# Last revised: 7 Dec. 2021
+# Last revised: 12 Dec. 2021
 
 import pynbody
 import pandas as pd
@@ -362,8 +362,11 @@ def calc_heated(sim, haloid, save=True, verbose=True):
 def calc_reaccreted(sim, haloid, save=True, verbose=True):
     ''' 
     -> 'Advanced' computation of accreted gas particles.
-    -> Screening the 'accreted' df compiled by 'calc_discharge()' specifically for gas particles being reaccreated 
-        (that is, gas discharged from its satellite's disk, but which is accreted back onto the disk at a later timestep.)
+    -> Screening the 'accreted' df compiled by 'calc_discharge()' specifically for gas particles 
+        previously discharged from their satellite's disk, and which are accreted (reaccreted) back onto 
+            the disk at a later timestep. 
+    -> (Only particles with an accretion event that has a directly preceeding discharge event are 
+        compiled into 'reaccreted'.)
     '''
     #--------------------------------#
     
@@ -462,7 +465,8 @@ def read_all_ejected_expelled():
 
 def read_all_discharged():
     '''
-    -> Reads predischarged, discharged, accreted, preheated, and heated into workable dataframes for analysis in notebooks.
+    -> Reads predischarged, discharged, accreted, preheated, and heated into workable dataframes for
+        analysis in notebooks.
     '''
     #--------------------------------#
     
@@ -501,7 +505,7 @@ def read_all_discharged():
 
 def read_accreted():
     '''
-    Reads all accreted particles, reaccreted particles into workable dataframes for analysis.
+    -> Reads all accreted particles, reaccreted particles into workable dataframes for analysis.
     '''
     #--------------------------------#
     

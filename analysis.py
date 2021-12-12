@@ -9,7 +9,7 @@
 # Github permalink: https://github.com/hollisakins/Justice_League_Code/blob/ 
 #                    e049137edcfdc9838ebb3cf0fcaa4ee46e977cec/Analysis/RamPressure/analysis.py
 # ____________________________________________________________________________________________
-# Last revised: 8 Dec. 2021
+# Last revised: 12 Dec. 2021
 
 import pynbody
 import pandas as pd
@@ -17,20 +17,6 @@ import numpy as np
 import pickle
 
 from base import *
-
-
-
-def get_keys():
-    '''
-    -> Simply retrieving satellite identifiers -- or 'keys' -- for all satellites used in to compile gas particle datasets.
-    '''
-    #--------------------------------#
-    
-    path1 = f'{rootPath}Stellar_Feedback_Code/SNeData/discharged_particles.hdf5'
-    with pd.HDFStore(path1) as hdf:
-        keys = [k[1:] for k in hdf.keys()]
-#     print(*keys)
-    return keys
 
 
 
