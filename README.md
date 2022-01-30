@@ -24,7 +24,7 @@ https://github.com/hollisakins/Justice_League_Code.git
 
 ## Satellites
 
-All gas particles treated in this research are sourced from the 19 satellite galaxies (specified by their assigned identifier in each respective simulation), chosen since they quench by $$z=0$$ and have virial gas masses above $$2x10^7$$ $$M_{/odot}$$ listed as follows: 
+All gas particles treated in this research are sourced from the 19 satellite galaxies (specified by their assigned identifier in each respective simulation), chosen since they quench by z = 0 and have virial gas masses above 2e7 Msol listed as follows: 
 
 - Sim **h148**: 
     - 13, 28, 37, 45, 68, 80, 283, 278, 329
@@ -76,7 +76,7 @@ All gas particles treated in this research are sourced from the 19 satellite gal
 
 > `particletracking.py`
 
-- An adaption of code from Akins H. by the same name , this script tracks gas particles for a specified simulation and specified satellite. Tracking begins for the first snapshot where the satellite comes within $$2R_{vir}$$ of its host galaxy, and ends at redshift $$z=0$$. Any gas particles within the satellite (while it is within this radial limit) for at least one snapshot are included.
+- An adaption of code from Akins H. by the same name , this script tracks gas particles for a specified simulation and specified satellite. Tracking begins for the first snapshot where the satellite comes within 2R_vir of its host galaxy, and ends at redshift z = 0. Any gas particles within the satellite (while it is within this radial limit) for at least one snapshot are included.
 - Uses as input data: simulation snapshots, `../SNeData/filepaths_haloids.pickle` (Akins H.) and generates a pickle file `../SNeData/iords/{sim}_{haloid}.pickle` and appends to an hdf5 `../SNeData/tracked_particles_v2.hdf5` ('v2' to differentiate from Akins' particle tracking).
 - Tracking can be run from the command line via `python particletracking.py h148 13`, where `h148` specifies the simulation and `13` specifies a corresponding satellite. (The bash script `runall.sh` can be used to run multiple instances of particle tracking.) 
 
@@ -105,7 +105,7 @@ All gas particles treated in this research are sourced from the 19 satellite gal
 
 > `StellarFeedback_p2`
 
-- A follow-up to the prior notebook that includes more rigorous analysis (e.g., using fractional values like $r/R_{vir}$, $v/V_{esc}$ to generate more meaninful results) between gas particles that were and were not SNe-heated just prior to discharge. Additionally, this introduces *reaccreted* particles into the study.
+- A follow-up to the prior notebook that includes more rigorous analysis (e.g., using fractional values like r/R_vir, v/V_esc to generate more meaninful results) between gas particles that were and were not SNe-heated just prior to discharge. Additionally, this introduces *reaccreted* particles into the study.
 
 > `StellarFeedback_p3`
 
@@ -147,8 +147,4 @@ All gas particles treated in this research are sourced from the 19 satellite gal
 <br />
 
 
-<<<<<<< HEAD
 *Last rev. 28 Jan. 2022*
-=======
-*Last rev. 28 Jan. 2022*
->>>>>>> c6a8b305bed504ac9572d39006ca2112f6a375d6
