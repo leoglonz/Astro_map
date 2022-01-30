@@ -147,4 +147,8 @@ All gas particles treated in this research are sourced from the 19 satellite gal
 <br />
 
 
+<<<<<<< HEAD
 *Last rev. 28 Jan. 2022*
+=======
+*Last rev. 28 Jan. 2022*
+>>>>>>> c6a8b305bed504ac9572d39006ca2112f6a375d6
