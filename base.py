@@ -6,7 +6,7 @@
 # Github permalink: https://github.com/hollisakins/Justice_League_Code/blob/
 #                    e049137edcfdc9838ebb3cf0fcaa4ee46e977cec/Analysis/RamPressure/base.py
 # ____________________________________________________________________________________________
-# Last revised: 5 Dec. 2021
+# Last revised: 30 Jan. 2022
 
 import pynbody
 import pandas as pd
@@ -25,11 +25,11 @@ rootPath = '~/Desktop/'
 
 
 
-# define some constants, which should be accessible by any code that imports base.py or analysis.py
-hubble =  0.6776942783267969 # hubble constant
-age = 13.800797497330507 # age of universe at z=0
+# define some constants, which should be accessible by any code that imports base.py or analysis.py.
+hubble =  0.6776942783267969 # hubble constant.
+age = 13.800797497330507 # age of universe at z=0.
 
-# set up matplotlib preferences
+# set up matplotlib preferences.
 mpl.rc('font',**{'family':'serif','monospace':['Palatino']})
 mpl.rc('text', usetex=True)
 mpl.rcParams.update({'figure.dpi': 200,

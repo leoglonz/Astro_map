@@ -6,7 +6,7 @@
 # Github permalink: https://github.com/hollisakins/Justice_League_Code/blob/
 #                    e049137edcfdc9838ebb3cf0fcaa4ee46e977cec/Analysis/RamPressure/particletracking.py
 # ____________________________________________________________________________________________________
-# Last revised: 5 Dec. 2021
+# Last revised: 30 Jan. 2022
 
 import sys
 import tqdm
@@ -17,6 +17,7 @@ from base import *
 
 
 hubble =  0.6776942783267969
+
 
 def get_iords(sim, z0haloid, filepaths, haloids):
     '''
@@ -44,6 +45,7 @@ def get_iords(sim, z0haloid, filepaths, haloids):
             pickle.dump(iords,outfile)
 
     return iords
+
 
 def run_tracking(sim, z0haloid, filepaths,haloids,h1ids):
     
@@ -191,7 +193,6 @@ def analysis(s,halo,h1,gas_particles,h,haloid,h1id):
     output['sat_r_gas'] = r_gas 
     
     
-    
     # defining r_g of host.
     try:
         pynbody.analysis.angmom.faceon(h1)
@@ -223,7 +224,6 @@ def analysis(s,halo,h1,gas_particles,h,haloid,h1id):
     output['host_r_half'] = r_half
     output['host_r_gas'] = r_gas
     
-
     
     # we say the particle is in the satellite if its particle ID is one of those AHF identifies as part of the halo
     in_sat = np.isin(output.pid, halo.g['iord'])
@@ -270,20 +270,7 @@ if __name__ == '__main__':
     assert len(filepaths) == len(haloids)
     assert len(haloids) == len(h1ids)
 
-    # we save the data as an .hdf5 file since this is meant for large datasets, so that should work pretty good
+    # we save the data as an .hdf5 file since this is meant for large datasets, so that should work pretty well
     output = run_tracking(sim, z0haloid, filepaths, haloids, h1ids)
     output.to_hdf('~/astro_research/Stellar_Feedback_Code/SNeData/tracked_particles_v3.hdf5',key=f'{sim}_{z0haloid}')
-
-
-
-
-
-
-
     
-
-
-
-
-
-                
