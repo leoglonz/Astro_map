@@ -1,7 +1,7 @@
 # A simple script to generate the 'predischarged', 'discharged', and (dsrg) 'accreted' dataframes.
 #
 # __________________________
-# Last revised: 7 Dec. 2021
+# Last revised: 7 Feb. 2022
 
 import tqdm
 
@@ -19,4 +19,4 @@ for key in keys:
     sim = str(key[:4])
     haloid = int(key[5:])
     # note that predischarged, discharged, etc. are automatically concatenated.
-    predischarged, discharged, all_accreted = calc_discharged(sim, haloid, save=True, verbose=False)
+    predischarged, discharged, accreted = calc_discharged(sim, haloid, save=True, verbose=False)
