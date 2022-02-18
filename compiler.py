@@ -455,7 +455,7 @@ def calc_snGas(sim, haloid, save=True, verbose=True):
     
     if save:
         key = f'{sim}_{str(int(haloid))}'
-        filepath = f'{rootPath}Stellar_Feedback_Code/SNeData/all_sn_particles.hdf5'
+        filepath = f'{rootPath}Stellar_Feedback_Code/SNeData/sngas_particles.hdf5'
         print(f'Saving {key} SN-heated particles to {filepath}')
         sngas.to_hdf(filepath, key=key)
         
