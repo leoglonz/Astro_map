@@ -11,7 +11,7 @@
 # Github permalink: https://github.com/hollisakins/Justice_League_Code/blob/ 
 #                    e049137edcfdc9838ebb3cf0fcaa4ee46e977cec/Analysis/RamPressure/analysis.py
 # ____________________________________________________________________________________________
-# Last revised: 7 Feb. 2022
+# Last revised: 17 Feb. 2022
 
 import pynbody
 import pandas as pd
@@ -118,7 +118,6 @@ def read_tracked_particles(sim, haloid, verbose=False):
     return data
 
 
-
 def calc_ejected_expelled(sim, haloid, save=True, verbose=True):
     '''
     -> Identifies gas particles meeting 'ejection' and 'expulsion' criteria, as well as those that have been cooled and
@@ -216,7 +215,6 @@ def calc_ejected_expelled(sim, haloid, save=True, verbose=True):
     return ejected, cooled, expelled, accreted
 
 
-
 def calc_discharged(sim, haloid, save=True, verbose=True):
     '''
     -> Identifies discharged particles (collecting their properties predischarge into 'predischarge', and postdischarge into  
@@ -299,7 +297,6 @@ def calc_discharged(sim, haloid, save=True, verbose=True):
     return predischarged, discharged, accreted
 
 
-
 def calc_heated(sim, haloid, save=True, verbose=True):
     '''
     -> Identifies discharged gas particles that experienced supernova heating at time of discharge, recorded in 'heated'. The 
@@ -356,7 +353,6 @@ def calc_heated(sim, haloid, save=True, verbose=True):
         
     print(f'> Returning (preheated, heated) datasets <')
     return preheated, heated
-
 
 
 def calc_reaccreted(sim, haloid, save=True, verbose=True):
@@ -418,8 +414,8 @@ def calc_reaccreted(sim, haloid, save=True, verbose=True):
         heated = np.array(dCache['sneHeated'])
         aCache['sneHeated'] = heated
         reaccreted = pd.concat([reaccreted, aCache])
-    
-        
+
+
     if save:
         key = f'{sim}_{str(int(haloid))}'
         filepath = f'{rootPath}Stellar_Feedback_Code/SNeData/reaccreted_particles.hdf5'
@@ -429,6 +425,42 @@ def calc_reaccreted(sim, haloid, save=True, verbose=True):
     print(f'> Returning (reaccreted) dataset <')
     return reaccreted
 
+
+def calc_SNGas(sim, haloid, save=True, verbose=True):
+    '''
+    -> Identifies all gas particles that were subject to supernova heating in the
+        simulations.
+    '''
+    #--------------------------------#
+    
+    import tqdm
+    data = read_tracked_particles(sim, haloid, verbose=verbose)
+    
+    if verbose: print(f'Now compiling SN-heated gas for {sim}-{haloid}...')
+    
+    sngas = pd.DataFrame() # all gas in sims that experienced SN-heating.
+    
+    pids = np.unique(data.pid)
+    for pid in tqdm.tqdm(pids):
+        dat = data[data.pid==pid]
+
+        time = np.array(dat.time, dtype=float)
+        coolontime = np.array(dat.coolontime, dtype=float)
+        
+        for i,t2 in enumerate(time[1:]):
+                if (coolontime[i] > time[i]):
+                    hot = dat[time==t2].copy()
+                    sngas = pd.concat([sngas, hot])
+                i += 1
+    
+    if save:
+        key = f'{sim}_{str(int(haloid))}'
+        filepath = f'{rootPath}Stellar_Feedback_Code/SNeData/all_sn_particles.hdf5'
+        print(f'Saving {key} SN-heated particles to {filepath}')
+        sngas.to_hdf(filepath, key=key)
+        
+    print(f'> Returning (SNgas) dataset <')
+    return sngas
 
 
 def read_all_ejected_expelled():
@@ -460,7 +492,6 @@ def read_all_ejected_expelled():
 
     print(f'> Returning (ejected, cooled, expelled, accreted) for all satellites <')
     return ejected, cooled, expelled, accreted
-
 
 
 def read_all_discharged():
@@ -499,7 +530,6 @@ def read_all_discharged():
        
     print(f'> Returning (predischarged, discharged, preheated, heated) for all satellites <')
     return predischarged, discharged, preheated, heated
-
 
 
 def read_accreted():
