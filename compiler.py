@@ -426,7 +426,7 @@ def calc_reaccreted(sim, haloid, save=True, verbose=True):
     return reaccreted
 
 
-def calc_SNGas(sim, haloid, save=True, verbose=True):
+def calc_snGas(sim, haloid, save=True, verbose=True):
     '''
     -> Identifies all gas particles that were subject to supernova heating in the
         simulations.
