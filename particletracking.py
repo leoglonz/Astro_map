@@ -6,7 +6,7 @@
 # Github permalink: https://github.com/hollisakins/Justice_League_Code/blob/
 #                    e049137edcfdc9838ebb3cf0fcaa4ee46e977cec/Analysis/RamPressure/particletracking.py
 # ____________________________________________________________________________________________________
-# Last revised: 4 Feb. 2022
+# Last revised: 22 Feb. 2022
 
 import sys
 import tqdm
@@ -272,5 +272,5 @@ if __name__ == '__main__':
 
     # we save the data as an .hdf5 file since this is meant for large datasets, so that should work pretty well
     output = run_tracking(sim, z0haloid, filepaths, haloids, h1ids)
-    output.to_hdf('~/astro_research/Stellar_Feedback_Code/SNeData/tracked_particles_v2.hdf5',key=f'{sim}_{z0haloid}')
+    output.to_hdf('~/astro_research/Stellar_Feedback_Code/SNeData/tracked_particles.hdf5',key=f'{sim}_{z0haloid}')
     
