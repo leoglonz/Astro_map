@@ -19,8 +19,8 @@ import matplotlib as mpl
 
 ############################################################################
 ##### Change directory nesting here to locate your data's root folder! #####
-# rootPath = '/home/lonzaric/astro_research/'
-rootPath = '~/Desktop/'
+rootPath = '/home/lonzaric/astro_research/'
+# rootPath = '~/Desktop/'
 ############################################################################
 
 
