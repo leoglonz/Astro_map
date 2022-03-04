@@ -36,8 +36,7 @@ def read_tracked_particles(sim, haloid, verbose=False):
 
     # importing tracked particles.
     # 'v2' revision contains all tracked particles for the 19 satellite halos selected for this study (see README):
-    path1 = f'{rootPath}Stellar_Feedback_Code/SNeData/tracked_particles_v2.hdf5'
-#     path1 = f'{rootPath}Stellar_Feedback_Code/SNeData/tracked_particles.hdf5' # original tracked particles set from H. Akins.
+    path1 = f'{rootPath}Stellar_Feedback_Code/SNeData/tracked_particles.hdf5'
     data = pd.read_hdf(path1, key=key)
     
     time = np.unique(data.time)

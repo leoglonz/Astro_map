@@ -6,7 +6,7 @@
 # Github permalink: https://github.com/hollisakins/Justice_League_Code/blob/
 #                    e049137edcfdc9838ebb3cf0fcaa4ee46e977cec/Analysis/RamPressure/base.py
 # ____________________________________________________________________________________________
-# Last revised: 30 Jan. 2022
+# Last revised: 3 Mar. 2022
 
 import pynbody
 import pandas as pd
@@ -19,8 +19,8 @@ import matplotlib as mpl
 
 ############################################################################
 ##### Change directory nesting here to locate your data's root folder! #####
-rootPath = '/home/lonzaric/astro_research/'
-# rootPath = '~/Desktop/'
+# rootPath = '/home/lonzaric/astro_research/'
+rootPath = '~/Desktop/'
 ############################################################################
 
 
@@ -142,7 +142,8 @@ def read_timesteps(sim):
     #--------------------------------#
 
     data = []
-    with open(f'{rootPath}Stellar_Feedback_Code/SNeData/timesteps_data/{sim}.data', 'rb') as f:
+    with open(f'/Users/leoglonz/Desktop/Stellar_Feedback_Code/SNeData/timesteps_data/{sim}.data', 'rb') as f:
+#     with open(f'{rootPath}Stellar_Feedback_Code/SNeData/timesteps_data/{sim}.data', 'rb') as f:
         while True:
             try:
                 data.append(pickle.load(f,encoding='latin1'))
