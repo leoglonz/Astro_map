@@ -18,4 +18,4 @@ for key in keys:
     haloid = int(key[5:])
     # note that heated is automatically concatenated without double counting, irrespective 
     # of how many times this code is run.
-    preheated, heated = calc_heated(sim, haloid, save=True, verbose=False)
+    preheated = calc_hot_predischarged(sim, haloid, save=True, verbose=False)

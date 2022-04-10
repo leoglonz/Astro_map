@@ -11,7 +11,7 @@
 # Github permalink: https://github.com/hollisakins/Justice_League_Code/blob/ 
 #                    e049137edcfdc9838ebb3cf0fcaa4ee46e977cec/Analysis/RamPressure/analysis.py
 # ____________________________________________________________________________________________
-# Last revised: 17 Feb. 2022
+# Last revised: 3 Apr. 2022
 
 import pynbody
 import pandas as pd
@@ -267,14 +267,14 @@ def calc_discharged(sim, haloid, save=True, verbose=True):
     accreted = accreted.apply(calc_angles, axis=1)
     
     
-    # preallocating boolean key; returns 'True' for a particle if SNe heating was active prior to discharge, and 'False' otherwise. 
-    print('Classifying `sneHeated` subset of discharged.')
-    heated = {'sneHeated': ""} 
+    # preallocating boolean key; returns 'True' for a particle if SN-heating was active prior to discharge, and 'False' otherwise. 
+    print('Classifying `snHeated` subset of discharged.')
+    heated = {'snHeated': ""} 
     discharged = discharged.join(pd.DataFrame(columns=heated))
     
     coolontime = np.asarray(discharged.coolontime)
-    time = np.asarray(predischarged.time) # use predischarged here b/c we want to check particle SNe-heating prior to discharge.
-    discharged['sneHeated'] = coolontime > time
+    time = np.asarray(predischarged.time) # use predischarged here b/c we want to check particle SN-heating prior to discharge.
+    discharged['snHeated'] = coolontime > time
     
     
     if save:
@@ -296,21 +296,19 @@ def calc_discharged(sim, haloid, save=True, verbose=True):
     return predischarged, discharged, accreted
 
 
-def calc_heated(sim, haloid, save=True, verbose=True):
+def calc_hot_predischarged(sim, haloid, save=True, verbose=True):
     '''
-    -> Identifies discharged gas particles that experienced supernova heating at time of discharge, recorded in 'heated'. The 
-        properties of these particles prior to discharge are recorded in 'preheated'. 
+    -> Identifies discharged gas particles that experienced supernova heating just prior to being 
+        discharged. Properties prior to discharge are recorded in 'hot_predischarged'. 
     '''
     #--------------------------------#
     
     import tqdm
     data = read_tracked_particles(sim, haloid, verbose=verbose)
     
-    if verbose: print(f'Now compiling heated particles for {sim}-{haloid}...')
+    if verbose: print(f'Now compiling hot_predischarged particles for {sim}-{haloid}...')
     
-    preheated = pd.DataFrame() # pre-discharge properties for heated gas.
-    heated = pd.DataFrame() # discharged gas particles that experienced SNe heating just prior to removal from disk.
-
+    hot_predischarged = pd.DataFrame() # properties pre-discharge for heated gas.
     
     pids = np.unique(data.pid)
     for pid in tqdm.tqdm(pids):
@@ -327,31 +325,22 @@ def calc_heated(sim, haloid, save=True, verbose=True):
         for i,t2 in enumerate(time[1:]):
                 i += 1
                 if sat_disk[i-1] and outside_disk[i] and (coolontime[i] > time[i-1]):
-                    in_ = dat[time==time[i-1]].copy()
-                    out = dat[time==t2].copy()
-                    preheated = pd.concat([preheated, in_])
-                    heated = pd.concat([heated, out])
+                    out = dat[time==time[i-1]].copy()
+                    hot_predischarged = pd.concat([hot_predischarged, out])
                  
     # apply the calc_angles function along the rows of discharged particles.
-    print('(1) Calculating preheated angles;')
-    preheated = preheated.apply(calc_angles, axis=1)
-    print('(2) Calculating preheated angles.')
-    heated = heated.apply(calc_angles, axis=1)
+    print('Calculating hot_predischarged angles;')
+    hot_predischarged = hot_predischarged.apply(calc_angles, axis=1)
    
     
     if save:
         key = f'{sim}_{str(int(haloid))}'
-        filepath = f'{rootPath}Stellar_Feedback_Code/SNeData/preheated_particles.hdf5'
-        print(f'Saving {key} pre-dsrg, SNe-heated particles to {filepath}')
-        preheated.to_hdf(filepath, key=key)
+        filepath = f'{rootPath}Stellar_Feedback_Code/SNeData/hot_predischarged_particles.hdf5'
+        print(f'Saving {key} pre-dsrg, SN-heated particles to {filepath}')
+        hot_predischarged.to_hdf(filepath, key=key)
         
-        filepath = f'{rootPath}Stellar_Feedback_Code/SNeData/heated_particles.hdf5'
-        print(f'Saving {key} SNe-heated particles to {filepath}')
-        heated.to_hdf(filepath, key=key)
-        
-        
-    print(f'> Returning (preheated, heated) datasets <')
-    return preheated, heated
+    print(f'> Returning (hot_predischarged) <')
+    return hot_predischarged
 
 
 def calc_reaccreted(sim, haloid, save=True, verbose=True):
@@ -378,10 +367,10 @@ def calc_reaccreted(sim, haloid, save=True, verbose=True):
     reaccreted = pd.DataFrame() # gas accreted following a discharge event.
   
     # defining attribute giving the length of time between discharge and accretion event for each gas particle:
-    recycleTime = {'recycleTime': ""} 
+    recycleTime = {'recycleTime': ''} 
     accreted = accreted.join(pd.DataFrame(columns=recycleTime)) 
     # ensuring that our new accreted dataframe inherits sne heating identified 'hot'.
-    heating = {'sneHeated': ''} 
+    heating = {'snHeated': ''} 
     accreted = accreted.join(pd.DataFrame(columns=heating))
 
     pids = np.unique(discharged.pid) # quicker to use 'discharged' because fewer unique particles.
@@ -410,8 +399,8 @@ def calc_reaccreted(sim, haloid, save=True, verbose=True):
         dCache = dis[0:len(aCache)]
         aCache['recycleTime'] = np.array(aCache['time']) - np.array(dCache['time'])
 
-        heated = np.array(dCache['sneHeated'])
-        aCache['sneHeated'] = heated
+        heated = np.array(dCache['snHeated'])
+        aCache['snHeated'] = heated
         reaccreted = pd.concat([reaccreted, aCache])
 
 
@@ -495,15 +484,14 @@ def read_all_ejected_expelled():
 
 def read_all_discharged():
     '''
-    -> Reads predischarged, discharged, accreted, preheated, and heated into workable dataframes for
+    -> Reads predischarged, discharged, accreted, and hot_predischarged into workable dataframes for
         analysis in notebooks.
     '''
     #--------------------------------#
     
     predischarged = pd.DataFrame()
     discharged = pd.DataFrame()
-    preheated= pd.DataFrame()
-    heated= pd.DataFrame()
+    hot_predischarged= pd.DataFrame()
     
     keys = get_keys()
 
@@ -519,16 +507,12 @@ def read_all_discharged():
         discharged1['key'] = key
         discharged = pd.concat([discharged, discharged1])
   
-        preheated1 = pd.read_hdf(f'{rootPath}Stellar_Feedback_Code/SNeData/preheated_particles.hdf5', key=key)
-        preheated1['key'] = key
-        preheated = pd.concat([preheated, preheated1])
-        
-        heated1 = pd.read_hdf(f'{rootPath}Stellar_Feedback_Code/SNeData/heated_particles.hdf5', key=key)
-        heated1['key'] = key
-        heated = pd.concat([heated, heated1])
+        hot_predischarged1 = pd.read_hdf(f'{rootPath}Stellar_Feedback_Code/SNeData/hot_predischarged_particles.hdf5', key=key)
+        hot_predischarged1['key'] = key
+        hot_predischarged = pd.concat([hot_predischarged, hot_predischarged1])
        
-    print(f'> Returning (predischarged, discharged, preheated, heated) for all satellites <')
-    return predischarged, discharged, preheated, heated
+    print(f'> Returning (predischarged, discharged, hot_predischarged) for all satellites <')
+    return predischarged, hot_predischarged, discharged
 
 
 def read_accreted():
@@ -554,6 +538,29 @@ def read_accreted():
         reaccreted1['key'] = key
         reaccreted = pd.concat([reaccreted, reaccreted1])
 
-
     print(f'> Returning (accreted, reaccreted) for all satellites <')
     return accreted, reaccreted
+
+
+def read_sngas():
+    '''
+    -> Reads all gas particles in selected satellites ever SN-heated (irrespective of whether or not
+        they were discharged.
+    '''
+    #--------------------------------#
+    
+    sntotal = pd.DataFrame()
+
+    keys = get_keys()
+
+    for i,key in enumerate(keys):
+        i += 1
+        sim = key[:4]
+        haloid = int(key[5:])
+        sntotal1 = pd.read_hdf(f'{rootPath}Stellar_Feedback_Code/SNeData/sngas_particles.hdf5',
+                               key=key)
+        sntotal1['key'] = key
+        sntotal = pd.concat([sntotal, sntotal1])
+
+    print(f'> Returning (SN-heated gas) for all satellites <')
+    return sntotal
