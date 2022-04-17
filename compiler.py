@@ -273,7 +273,7 @@ def calc_discharged(sim, haloid, save=True, verbose=True):
     discharged = discharged.join(pd.DataFrame(columns=heated))
     
     coolontime = np.asarray(discharged.coolontime)
-    time = np.asarray(predischarged.time) # use predischarged here b/c we want to check particle SN-heating prior to discharge.
+    time = np.asarray(predischarged.time) # use predischarged to check SN-heating prior to discharge.
     discharged['snHeated'] = coolontime > time
     
     
@@ -425,7 +425,7 @@ def calc_snGas(sim, haloid, save=True, verbose=True):
     data = read_tracked_particles(sim, haloid, verbose=verbose)
     
     if verbose: print(f'Now compiling SN-heated gas for {sim}-{haloid}...')
-    
+        
     sngas = pd.DataFrame() # all gas in sims that experienced SN-heating.
     
     pids = np.unique(data.pid)
@@ -436,10 +436,10 @@ def calc_snGas(sim, haloid, save=True, verbose=True):
         coolontime = np.array(dat.coolontime, dtype=float)
         
         for i,t2 in enumerate(time[1:]):
-                if (coolontime[i] > time[i]):
-                    hot = dat[time==t2].copy()
-                    sngas = pd.concat([sngas, hot])
-                i += 1
+            i += 1
+            if (coolontime[i] > time[i-1]):
+                hot = dat[time==t2].copy()
+                sngas = pd.concat([sngas, hot])
     
     if save:
         key = f'{sim}_{str(int(haloid))}'
