@@ -250,7 +250,7 @@ def analysis(s,halo,h1,gas_particles,h,haloid,h1id):
 
 if __name__ == '__main__':
     sim = str(sys.argv[1])
-    z0haloid = int(sys.argv[2])
+    z0haloid = int(ssys.argv[2])
     
     snap_start = get_snap_start(sim,z0haloid)
     filepaths, haloids, h1ids = get_stored_filepaths_haloids(sim,z0haloid)

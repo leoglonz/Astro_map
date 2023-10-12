@@ -98,19 +98,18 @@ All gas particles treated in this research are sourced from the 19 satellite gal
 
 ## iPython Notebooks
 
-> `StellarFeedback_p1`
+> `StellarFeedbackAnalysis.ipynb` (Note: `StellarFeedback_p1` and `StellarFeedback_p2` are now merged)
 
-- This notebook includes basic analysis of kinematic et al. properties like exit angles and temperatures for discharged and accreted gas particles. 
-- Included here are comparisons of the properties of these particles pre- and post- discharge/accretion, and comparisons of those that were SNe-heated prior to discharged against those that were not.
+- This notebook includes basic analysis of kinematic et al. properties like exit angles and temperatures for discharged and accreted gas particles, along with more rigorous analysis (e.g., using fractional values like r/R_vir, v/V_esc to generate more meaninful results) between gas particles that were and were not SNe-heated just prior to discharge. Additionally, this introduces *reaccreted* particles into the study.
+- Furthermore, this includes comparisons of the properties of particles pre- and post- discharge/accretion, and comparisons of those that were SNe-heated prior to discharged against those that were not.
 
-> `StellarFeedback_p2`
-
-- A follow-up to the prior notebook that includes more rigorous analysis (e.g., using fractional values like r/R_vir, v/V_esc to generate more meaninful results) between gas particles that were and were not SNe-heated just prior to discharge. Additionally, this introduces *reaccreted* particles into the study.
-
-> `StellarFeedback_p3`
+> `ReaccreationAnalysis.ipynb`
 
 - This notebook takes specific aim at studying reaccretion (or lack thereof) of previously discharged particles back onto their respective satellite's disk. This includes looking at reaccretion times and how SNe-heating affects various aspects of reaccretion.
-- Analysis here is limited due to time constraints, but will be advanced from Spring 2022.
+
+> `SfrAnalysis.ipynb`
+
+- The third area of focus is addressed here; specifically, in cooperation with research group members who studied star formation rates (SFRs) in our simulation galaxies, we apply SFR histories to the analyses present in the `StellarFeedbackAnalysis.ipynb` and `ReaccreationAnalysis.ipynb` to identify further relations between SFR and SNe effects when it comes to both mass loading and SF quenching.
 
 
 ## Directories
@@ -125,9 +124,9 @@ All gas particles treated in this research are sourced from the 19 satellite gal
 - Contains all `write_{dataset}.py` scripts needed for compiling the specific datasets like *discharged* and *reaccreted* used in the analysis here.
 
 
-> `plots`
+> `F21plots` and `S22plots`
 
-- Contains all plots generated for the final research paper.
+- Contains all plots generated for final research paper.
 
 > `TestScripts`
 
@@ -135,7 +134,7 @@ All gas particles treated in this research are sourced from the 19 satellite gal
 
 > `archive`
 
-- Scrapped versions of scripts and notebooks.
+- Depreciated scripts and notebooks.
 
 
 <br />
@@ -147,4 +146,4 @@ All gas particles treated in this research are sourced from the 19 satellite gal
 <br />
 
 
-*Last rev. 28 Jan. 2022*
+*Last rev. 11 Oct. 2023*
